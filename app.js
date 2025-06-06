@@ -208,4 +208,3 @@ class SheetApp {
   }
   
   const app = new SheetApp();
-  
