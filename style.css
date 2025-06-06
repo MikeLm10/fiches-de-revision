@@ -1,0 +1,300 @@
+:root {
+    --primary: #002f6c;
+    --primary-dark: #001f4d;
+    --secondary: #b30000;
+    --success: #008000;
+    --background: #f9fafb;
+    --card-bg: #ffffff;
+    --text: #1f2937;
+    --text-light: #6b7280;
+    --border: #d1d5db;
+    --radius: 12px;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    padding: 20px;
+    line-height: 1.6;
+  }
+  
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .header h1 {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 10px;
+  }
+  
+  .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-light);
+  }
+  
+  .nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .nav-btn {
+    background: none;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .nav-btn:hover {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .nav-btn.active {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .section {
+    display: block;
+  }
+  
+  .card {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group label {
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 1rem;
+  }
+  
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+  
+  .btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+  }
+  
+  .btn:hover {
+    background: var(--primary-dark);
+  }
+  
+  .search-filters {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  
+  .search-input,
+  .filter-select {
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .sheet-card {
+    background: white;
+    border-left: 4px solid var(--primary);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  
+  .sheet-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .sheet-meta {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  
+  .sheet-content {
+    background: #f3f4f6;
+    padding: 15px;
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+  }
+  
+  .sheet-photos {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+  
+  .sheet-photos img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  
+  .sheet-photos img:hover {
+    transform: scale(1.1);
+  }
+  
+  .sheet-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .btn-small {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+  }
+  
+  .photo-upload {
+    border: 2px dashed var(--border);
+    padding: 20px;
+    text-align: center;
+    border-radius: var(--radius);
+    background: #f9fafb;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .photo-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .photo-item {
+    position: relative;
+  }
+  
+  .photo-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .photo-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #b30000;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: var(--radius);
+  }
+  
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--text-light);
+  }
+  

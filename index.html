@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fiches de Révision</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Fiches de Révision</h1>
+    <p class="subtitle">Partage de connaissances entre élèves</p>
+  </div>
+
+  <div class="nav">
+    <a href="#" class="nav-btn active" onclick="showSection('submit')">Créer une fiche</a>
+    <a href="#" class="nav-btn" onclick="showSection('approved')">Fiches validées</a>
+    <a href="#" class="nav-btn" onclick="showSection('pending')">En attente</a>
+  </div>
+
+  <div id="submitSection" class="section">
+    <div class="card">
+      <h2>Nouvelle fiche</h2>
+      <form id="revisionForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="firstName">Prénom *</label>
+            <input type="text" id="firstName" required>
+          </div>
+          <div class="form-group">
+            <label for="lastName">Nom *</label>
+            <input type="text" id="lastName" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" required>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="pathway">Section *</label>
+            <select id="pathway" required>
+              <option value="">Sélectionner</option>
+              <option>BAC</option>
+              <option>IB</option>
+              <option>Maturité</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="grade">Classe *</label>
+            <select id="grade" required>
+              <option value="">Sélectionner</option>
+              <option>6ème</option>
+              <option>5ème</option>
+              <option>4ème</option>
+              <option>3ème</option>
+              <option>2nde</option>
+              <option>1ère</option>
+              <option>Terminale</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="subject">Matière *</label>
+            <select id="subject" required>
+              <option value="">Sélectionner</option>
+              <option>Mathématiques</option>
+              <option>Français</option>
+              <option>Histoire</option>
+              <option>Physique</option>
+              <option>Biologie</option>
+              <option>Anglais</option>
+              <option>Géographie</option>
+              <option>Philosophie</option>
+              <option>OC</option>
+              <option>OS</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="chapter">Chapitre *</label>
+          <input type="text" id="chapter" required>
+        </div>
+        <div class="form-group">
+          <label for="content">Contenu *</label>
+          <textarea id="content" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Photos (optionnel)</label>
+          <div class="photo-upload" onclick="document.getElementById('photoInput').click()">Cliquer pour ajouter des photos</div>
+          <input type="file" id="photoInput" multiple accept="image/*" style="display: none;">
+          <div id="photoPreview" class="photo-preview"></div>
+        </div>
+        <button type="submit" class="btn">Soumettre la fiche</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="approvedSection" class="section" style="display: none;">
+    <div class="card">
+      <h2>Fiches validées</h2>
+      <div class="search-filters">
+        <input type="text" id="searchInput" class="search-input" placeholder="Rechercher...">
+        <select id="sortSelect" class="filter-select">
+          <option value="recent">Plus récentes</option>
+          <option value="oldest">Plus anciennes</option>
+          <option value="subject">Par matière</option>
+          <option value="pathway">Par section</option>
+        </select>
+      </div>
+      <div id="approvedContainer"></div>
+    </div>
+  </div>
+
+  <div id="pendingSection" class="section" style="display: none;">
+    <div class="card">
+      <h2>Fiches en attente</h2>
+      <div id="pendingContainer"></div>
+    </div>
+  </div>
+</div>
+
+<div id="imageModal" class="modal" onclick="closeModal()">
+  <button class="modal-close" onclick="closeModal()">×</button>
+  <img id="modalImage" src="" alt="Image agrandie">
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
