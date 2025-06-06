@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fiches partagées</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Fiches partagées</h1>
+    <p class="subtitle">Recherchez, triez et explorez les fiches validées</p>
+  </div>
+
+  <div class="nav">
+    <a href="index.html" class="nav-btn">← Retour</a>
+  </div>
+
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Rechercher..." class="search-input">
+    <select id="sortSelect" class="filter-select">
+      <option value="recent">Plus récentes</option>
+      <option value="oldest">Plus anciennes</option>
+      <option value="subject">Par matière</option>
+      <option value="pathway">Par section</option>
+    </select>
+  </div>
+
+  <section id="sharedContainer"></section>
+</div>
+
+<div id="imageModal" class="modal" onclick="closeModal()">
+  <button class="modal-close" onclick="closeModal()">×</button>
+  <img id="modalImage" src="" alt="Image agrandie">
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
+    authDomain: "fiches-florimont.firebaseapp.com",
+    projectId: "fiches-florimont",
+    storageBucket: "fiches-florimont.appspot.com",
+    messagingSenderId: "861008333499",
+    appId: "1:861008333499:web:57bb7a0ec07b820164b47de",
+    measurementId: "G-WDQ8BMJ5W5"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

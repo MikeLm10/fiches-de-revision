@@ -17,6 +17,7 @@
     <a href="#" class="nav-btn active" onclick="showSection('submit')">Créer une fiche</a>
     <a href="#" class="nav-btn" onclick="showSection('approved')">Fiches validées</a>
     <a href="#" class="nav-btn" onclick="showSection('pending')">En attente</a>
+    <a href="shared.html" class="nav-btn">Fiches partagées</a>
   </div>
 
   <div id="submitSection" class="section">
@@ -45,6 +46,7 @@
               <option>BAC</option>
               <option>IB</option>
               <option>Maturité</option>
+              <option>Cycle</option>
             </select>
           </div>
           <div class="form-group">
@@ -125,6 +127,21 @@
   <img id="modalImage" src="" alt="Image agrandie">
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
+    authDomain: "fiches-florimont.firebaseapp.com",
+    projectId: "fiches-florimont",
+    storageBucket: "fiches-florimont.appspot.com",
+    messagingSenderId: "861008333499",
+    appId: "1:861008333499:web:57bb7a0ec07b820164b47de",
+    measurementId: "G-WDQ8BMJ5W5"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 <script src="app.js"></script>
 </body>
 </html>

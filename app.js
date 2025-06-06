@@ -1,7 +1,5 @@
 class SheetApp {
     constructor() {
-      this.pending = JSON.parse(localStorage.getItem('pendingSheets') || '[]');
-      this.approved = JSON.parse(localStorage.getItem('approvedSheets') || '[]');
       this.selectedPhotos = [];
       this.bindEvents();
       this.renderAll();
@@ -59,7 +57,6 @@ class SheetApp {
     submitSheet(e) {
       e.preventDefault();
       const sheet = {
-        id: Date.now(),
         firstName: document.getElementById('firstName').value,
         lastName: document.getElementById('lastName').value,
         email: document.getElementById('email').value,
@@ -72,42 +69,105 @@ class SheetApp {
         date: new Date().toLocaleDateString('fr-FR'),
         status: "pending"
       };
-      this.pending.push(sheet);
-      this.savePending();
-      this.renderPending();
-      e.target.reset();
-      this.selectedPhotos = [];
-      this.updatePhotoPreview();
-      alert("Fiche soumise avec succès ! Elle apparaîtra une fois validée.");
-    }
   
-    approveSheet(id) {
-      const sheet = this.pending.find(s => s.id === id);
-      if (sheet) {
-        this.approved.push(sheet);
-        this.pending = this.pending.filter(s => s.id !== id);
-        this.saveApproved();
-        this.savePending();
+      db.collection("fiches").add(sheet).then(() => {
+        alert("Fiche soumise avec succès ! Elle apparaîtra une fois validée.");
+        e.target.reset();
+        this.selectedPhotos = [];
+        this.updatePhotoPreview();
         this.renderAll();
-      }
+      }).catch(error => {
+        alert("Erreur lors de l'envoi de la fiche.");
+        console.error(error);
+      });
     }
   
-    editSheet(id) {
-      const sheet = this.pending.find(s => s.id === id);
-      const newContent = prompt("Modifier le contenu de la fiche :", sheet.content);
-      if (newContent !== null) {
-        sheet.content = newContent + " (modifié - à revalider)";
-        this.savePending();
-        this.renderPending();
-      }
+    approveSheet(docId, data) {
+      db.collection("fiches").doc(docId).update({ status: "approved" }).then(() => {
+        db.collection("shared").add(data).then(() => {
+          this.renderAll();
+        });
+      });
     }
   
-    deleteSheet(id) {
+    deleteSheet(docId) {
       if (confirm("Êtes-vous sûr de vouloir supprimer cette fiche ?")) {
-        this.pending = this.pending.filter(s => s.id !== id);
-        this.savePending();
-        this.renderPending();
+        db.collection("fiches").doc(docId).delete().then(() => {
+          this.renderAll();
+        });
       }
+    }
+  
+    renderPending() {
+      const container = document.getElementById('pendingContainer');
+      db.collection("fiches").where("status", "==", "pending").get().then(snapshot => {
+        if (snapshot.empty) {
+          container.innerHTML = '<p class="empty-state">Aucune fiche en attente.</p>';
+          return;
+        }
+  
+        container.innerHTML = '';
+        snapshot.forEach(doc => {
+          const s = doc.data();
+          container.innerHTML += `
+            <div class="sheet-card">
+              <div class="sheet-title">${s.chapter}</div>
+              <div class="sheet-meta">
+                ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
+              </div>
+              <div class="sheet-content">${s.content}</div>
+              ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo">`).join('')}</div>` : ''}
+              <div class="sheet-actions">
+                <button class="btn btn-small" onclick='app.approveSheet("${doc.id}", ${JSON.stringify(s).replace(/"/g, "&quot;")})'>Valider</button>
+                <button class="btn btn-small" onclick='app.deleteSheet("${doc.id}")'>Supprimer</button>
+              </div>
+            </div>`;
+        });
+      });
+    }
+  
+    renderApproved() {
+      const container = document.getElementById('approvedContainer');
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const sort = document.getElementById('sortSelect').value;
+  
+      db.collection("fiches").where("status", "==", "approved").get().then(snapshot => {
+        let results = [];
+        snapshot.forEach(doc => {
+          results.push(doc.data());
+        });
+  
+        results = results.filter(s =>
+          s.chapter.toLowerCase().includes(search) ||
+          s.content.toLowerCase().includes(search) ||
+          s.subject.toLowerCase().includes(search)
+        );
+  
+        switch (sort) {
+          case "recent": results.sort((a, b) => b.date.localeCompare(a.date)); break;
+          case "oldest": results.sort((a, b) => a.date.localeCompare(b.date)); break;
+          case "subject": results.sort((a, b) => a.subject.localeCompare(b.subject)); break;
+          case "pathway": results.sort((a, b) => a.pathway.localeCompare(b.pathway)); break;
+        }
+  
+        if (results.length === 0) {
+          container.innerHTML = '<p class="empty-state">Aucune fiche trouvée.</p>';
+          return;
+        }
+  
+        container.innerHTML = results.map(s => `
+          <div class="sheet-card">
+            <div class="sheet-title">${s.chapter}</div>
+            <div class="sheet-meta">
+              ${s.firstName} ${s.lastName} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
+            </div>
+            <div class="sheet-content">${s.content}</div>
+            ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo" onclick="showImage('${p.data}')">`).join('')}</div>` : ''}
+            <div class="sheet-actions">
+              <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g, "&quot;")})'>Exporter PDF</button>
+            </div>
+          </div>`).join('');
+      });
     }
   
     exportPDF(sheet) {
@@ -123,73 +183,6 @@ class SheetApp {
       `);
       win.document.close();
       win.print();
-    }
-  
-    savePending() {
-      localStorage.setItem('pendingSheets', JSON.stringify(this.pending));
-    }
-  
-    saveApproved() {
-      localStorage.setItem('approvedSheets', JSON.stringify(this.approved));
-    }
-  
-    renderPending() {
-      const container = document.getElementById('pendingContainer');
-      if (this.pending.length === 0) {
-        container.innerHTML = '<p class="empty-state">Aucune fiche en attente.</p>';
-        return;
-      }
-      container.innerHTML = this.pending.map(s => `
-        <div class="sheet-card">
-          <div class="sheet-title">${s.chapter}</div>
-          <div class="sheet-meta">
-            ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
-          </div>
-          <div class="sheet-content">${s.content}</div>
-          ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo">`).join('')}</div>` : ''}
-          <div class="sheet-actions">
-            <button class="btn btn-small" onclick="app.approveSheet(${s.id})">Valider</button>
-            <button class="btn btn-small" onclick="app.editSheet(${s.id})">Modifier</button>
-            <button class="btn btn-small" onclick="app.deleteSheet(${s.id})">Supprimer</button>
-          </div>
-        </div>`).join('');
-    }
-  
-    renderApproved() {
-      const container = document.getElementById('approvedContainer');
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      const sort = document.getElementById('sortSelect').value;
-  
-      let filtered = this.approved.filter(s =>
-        s.chapter.toLowerCase().includes(search) ||
-        s.content.toLowerCase().includes(search) ||
-        s.subject.toLowerCase().includes(search)
-      );
-  
-      switch (sort) {
-        case "recent": filtered.sort((a, b) => b.id - a.id); break;
-        case "oldest": filtered.sort((a, b) => a.id - b.id); break;
-        case "subject": filtered.sort((a, b) => a.subject.localeCompare(b.subject)); break;
-        case "pathway": filtered.sort((a, b) => a.pathway.localeCompare(b.pathway)); break;
-      }
-  
-      if (filtered.length === 0) {
-        container.innerHTML = '<p class="empty-state">Aucune fiche trouvée.</p>';
-        return;
-      }
-  
-      container.innerHTML = filtered.map(s => `
-        <div class="sheet-card">
-          <div class="sheet-title">${s.chapter}</div>
-          <div class="sheet-meta">
-            ${s.firstName} ${s.lastName} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
-          </div>
-          <div class="sheet-content">${s.content}</div>
-          ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo" onclick="showImage('${p.data}')">`).join('')}</div>` : ''}
-          <div class="sheet-actions">
-            <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g, "&quot;")})'>Exporter PDF</button>
-          </div>
-        </div>`).join('');
     }
   
     renderAll() {
