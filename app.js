@@ -1,4 +1,4 @@
-// Authentification avec Google (admin seulement)
+
 firebase.auth().onAuthStateChanged((user) => {
     if (user) {
       const email = user.email;
