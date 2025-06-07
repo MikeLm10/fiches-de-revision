@@ -7,11 +7,42 @@ import {
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
   
-  // Récupérer auth et db depuis index.html
-  const auth = window.auth;
-  const db = window.db;
+  import {
+    getFirestore,
+    collection,
+    doc,
+    getDocs,
+    updateDoc,
+    deleteDoc,
+    addDoc,
+    query,
+    where
+  } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
   
-  // Fonction de connexion admin
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
+    authDomain: "fiches-florimont.firebaseapp.com",
+    projectId: "fiches-florimont",
+    storageBucket: "fiches-florimont.appspot.com",
+    messagingSenderId: "861008333499",
+    appId: "1:861008333499:web:57bb7a0ec07b820164b47de",
+    measurementId: "G-WDQ8BMJ5W5"
+  };
+  
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+  const db = getFirestore(firebaseApp);
+  
+  window.auth = auth;
+  window.db = db;
+  
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const userEmailDisplay = document.getElementById("userEmail");
+  const adminEmail = "j26883537@gmail.com";
+  
   function login() {
     const provider = new GoogleAuthProvider();
     signInWithRedirect(auth, provider).catch((error) => {
@@ -20,26 +51,26 @@ import {
   }
   window.login = login;
   
-  // Gérer le retour après redirection
-  getRedirectResult(auth).then((result) => {
-    if (result && result.user) {
-      const user = result.user;
-      alert("Connecté en tant que " + user.email);
-    }
-  }).catch((error) => {
-    console.error("Erreur après redirection :", error);
-  });
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result && result.user) {
+        const user = result.user;
+        alert("Connecté en tant que " + user.email);
+      }
+    })
+    .catch((error) => {
+      console.error("Erreur après redirection :", error);
+    });
   
-  // Gérer l’état de connexion
   onAuthStateChanged(auth, (user) => {
     if (user) {
       const email = user.email;
       console.log("🔐 Connecté :", email);
-      document.getElementById("userEmail").innerText = `Connecté en tant que ${email}`;
-      document.getElementById("loginBtn").style.display = "none";
-      document.getElementById("logoutBtn").style.display = "inline-block";
+      userEmailDisplay.innerText = `Connecté en tant que ${email}`;
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
   
-      if (email === "j26883537@gmail.com") {
+      if (email === adminEmail) {
         document.getElementById("pendingSection").style.display = "block";
         document.querySelectorAll(".nav-btn").forEach(btn => {
           if (btn.innerText.includes("attente")) {
@@ -48,18 +79,18 @@ import {
         });
       } else {
         console.warn("👤 Connecté mais non admin");
+        document.getElementById("pendingSection").style.display = "none";
       }
     } else {
       console.log("🚪 Utilisateur non connecté");
-      document.getElementById("loginBtn").style.display = "inline-block";
-      document.getElementById("logoutBtn").style.display = "none";
-      document.getElementById("userEmail").innerText = "";
+      loginBtn.style.display = "inline-block";
+      logoutBtn.style.display = "none";
+      userEmailDisplay.innerText = "";
       document.getElementById("pendingSection").style.display = "none";
     }
   });
   
-  // Déconnexion
-  document.getElementById("logoutBtn").addEventListener("click", () => {
+  logoutBtn.addEventListener("click", () => {
     signOut(auth).catch((error) => {
       console.error("Erreur de déconnexion :", error);
     });
@@ -121,7 +152,7 @@ import {
       this.updatePhotoPreview();
     }
   
-    submitSheet(e) {
+    async submitSheet(e) {
       e.preventDefault();
       const sheet = {
         firstName: document.getElementById('firstName').value,
@@ -137,104 +168,100 @@ import {
         status: "pending"
       };
   
-      db.collection("fiches").add(sheet).then(() => {
+      try {
+        await addDoc(collection(db, "fiches"), sheet);
         alert("Fiche soumise avec succès ! Elle apparaîtra une fois validée.");
         e.target.reset();
         this.selectedPhotos = [];
         this.updatePhotoPreview();
         this.renderAll();
-      }).catch(error => {
+      } catch (error) {
         alert("Erreur lors de l'envoi de la fiche.");
         console.error(error);
-      });
-    }
-  
-    approveSheet(docId, data) {
-      db.collection("fiches").doc(docId).update({ status: "approved" }).then(() => {
-        db.collection("shared").add(data).then(() => {
-          this.renderAll();
-        });
-      });
-    }
-  
-    deleteSheet(docId) {
-      if (confirm("Êtes-vous sûr de vouloir supprimer cette fiche ?")) {
-        db.collection("fiches").doc(docId).delete().then(() => {
-          this.renderAll();
-        });
       }
     }
   
-    renderPending() {
-      const container = document.getElementById('pendingContainer');
-      db.collection("fiches").where("status", "==", "pending").get().then(snapshot => {
-        if (snapshot.empty) {
-          container.innerHTML = '<p class="empty-state">Aucune fiche en attente.</p>';
-          return;
-        }
+    async approveSheet(docId, data) {
+      await updateDoc(doc(db, "fiches", docId), { status: "approved" });
+      await addDoc(collection(db, "shared"), data);
+      this.renderAll();
+    }
   
-        container.innerHTML = '';
-        snapshot.forEach(doc => {
-          const s = doc.data();
-          container.innerHTML += `
-            <div class="sheet-card">
-              <div class="sheet-title">${s.chapter}</div>
-              <div class="sheet-meta">
-                ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
-              </div>
-              <div class="sheet-content">${s.content}</div>
-              ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo">`).join('')}</div>` : ''}
-              <div class="sheet-actions">
-                <button class="btn btn-small" onclick='app.approveSheet("${doc.id}", ${JSON.stringify(s).replace(/"/g, "&quot;")})'>Valider</button>
-                <button class="btn btn-small" onclick='app.deleteSheet("${doc.id}")'>Supprimer</button>
-              </div>
-            </div>`;
-        });
+    async deleteSheet(docId) {
+      if (confirm("Êtes-vous sûr de vouloir supprimer cette fiche ?")) {
+        await deleteDoc(doc(db, "fiches", docId));
+        this.renderAll();
+      }
+    }
+  
+    async renderPending() {
+      const container = document.getElementById('pendingContainer');
+      const q = query(collection(db, "fiches"), where("status", "==", "pending"));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        container.innerHTML = '<p class="empty-state">Aucune fiche en attente.</p>';
+        return;
+      }
+  
+      container.innerHTML = '';
+      snapshot.forEach(docSnap => {
+        const s = docSnap.data();
+        container.innerHTML += `
+          <div class="sheet-card">
+            <div class="sheet-title">${s.chapter}</div>
+            <div class="sheet-meta">
+              ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
+            </div>
+            <div class="sheet-content">${s.content}</div>
+            ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo">`).join('')}</div>` : ''}
+            <div class="sheet-actions">
+              <button class="btn btn-small" onclick='app.approveSheet("${docSnap.id}", ${JSON.stringify(s).replace(/"/g, "&quot;")})'>Valider</button>
+              <button class="btn btn-small" onclick='app.deleteSheet("${docSnap.id}")'>Supprimer</button>
+            </div>
+          </div>`;
       });
     }
   
-    renderApproved() {
+    async renderApproved() {
       const container = document.getElementById('approvedContainer');
       const search = document.getElementById('searchInput').value.toLowerCase();
       const sort = document.getElementById('sortSelect').value;
   
-      db.collection("fiches").where("status", "==", "approved").get().then(snapshot => {
-        let results = [];
-        snapshot.forEach(doc => {
-          results.push(doc.data());
-        });
+      const q = query(collection(db, "fiches"), where("status", "==", "approved"));
+      const snapshot = await getDocs(q);
+      let results = [];
+      snapshot.forEach(docSnap => results.push(docSnap.data()));
   
-        results = results.filter(s =>
-          s.chapter.toLowerCase().includes(search) ||
-          s.content.toLowerCase().includes(search) ||
-          s.subject.toLowerCase().includes(search)
-        );
+      results = results.filter(s =>
+        s.chapter.toLowerCase().includes(search) ||
+        s.content.toLowerCase().includes(search) ||
+        s.subject.toLowerCase().includes(search)
+      );
   
-        switch (sort) {
-          case "recent": results.sort((a, b) => b.date.localeCompare(a.date)); break;
-          case "oldest": results.sort((a, b) => a.date.localeCompare(b.date)); break;
-          case "subject": results.sort((a, b) => a.subject.localeCompare(b.subject)); break;
-          case "pathway": results.sort((a, b) => a.pathway.localeCompare(b.pathway)); break;
-        }
+      switch (sort) {
+        case "recent": results.sort((a, b) => b.date.localeCompare(a.date)); break;
+        case "oldest": results.sort((a, b) => a.date.localeCompare(b.date)); break;
+        case "subject": results.sort((a, b) => a.subject.localeCompare(b.subject)); break;
+        case "pathway": results.sort((a, b) => a.pathway.localeCompare(b.pathway)); break;
+      }
   
-        if (results.length === 0) {
-          container.innerHTML = '<p class="empty-state">Aucune fiche trouvée.</p>';
-          return;
-        }
+      if (results.length === 0) {
+        container.innerHTML = '<p class="empty-state">Aucune fiche trouvée.</p>';
+        return;
+      }
   
-        container.innerHTML = results.map(s => `
-          <div class="sheet-card">
-            <div class="sheet-title">${s.chapter}</div>
-            <div class="sheet-meta">
-              ${s.firstName} ${s.lastName} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
-            </div>
-            <div class="sheet-content">${s.content}</div>
-            ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo" onclick="showImage('${p.data}')">`).join('')}</div>` : ''}
-            <div class="sheet-actions">
-              <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g, "&quot;")})'>Exporter PDF</button>
-            </div>
-          </div>`).join('');
-      });
+      container.innerHTML = results.map(s => `
+        <div class="sheet-card">
+          <div class="sheet-title">${s.chapter}</div>
+          <div class="sheet-meta">
+            ${s.firstName} ${s.lastName} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
+          </div>
+          <div class="sheet-content">${s.content}</div>
+          ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo" onclick="showImage('${p.data}')">`).join('')}</div>` : ''}
+          <div class="sheet-actions">
+            <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g, "&quot;")})'>Exporter PDF</button>
+          </div>
+        </div>`).join('');
     }
   
     exportPDF(sheet) {

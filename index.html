@@ -16,12 +16,12 @@
   <div class="nav">
     <a href="#" class="nav-btn active" onclick="showSection('submit')">Créer une fiche</a>
     <a href="#" class="nav-btn" onclick="showSection('approved')">Fiches validées</a>
-    <a href="#" class="nav-btn" onclick="showSection('pending')">En attente</a>
+    <a href="#" class="nav-btn" style="display: none;" onclick="showSection('pending')">En attente</a>
     <a href="shared.html" class="nav-btn">Fiches partagées</a>
   </div>
 
   <div style="text-align: center; margin-bottom: 20px;">
-    <button id="loginBtn" class="btn">Connexion admin</button>
+    <button id="loginBtn" class="btn" onclick="login()">Connexion admin</button>
     <button id="logoutBtn" class="btn" style="display: none;">Déconnexion</button>
     <p id="userEmail" style="margin-top: 10px; font-weight: bold;"></p>
   </div>
@@ -132,32 +132,6 @@
   <button class="modal-close" onclick="closeModal()">×</button>
   <img id="modalImage" src="" alt="Image agrandie">
 </div>
-
-<!-- Firebase SDK en version modulaire -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
-    authDomain: "fiches-florimont.firebaseapp.com",
-    projectId: "fiches-florimont",
-    storageBucket: "fiches-florimont.appspot.com",
-    messagingSenderId: "861008333499",
-    appId: "1:861008333499:web:57bb7a0ec07b820164b47de",
-    measurementId: "G-WDQ8BMJ5W5"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-
-  // rendre accessibles depuis app.js si besoin
-  window.firebaseApp = app;
-  window.db = db;
-  window.auth = auth;
-</script>
 
 <!-- Ton script principal -->
 <script type="module" src="app.js"></script>
