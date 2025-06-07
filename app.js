@@ -23,18 +23,19 @@ firebase.auth().onAuthStateChanged((user) => {
   }
 });
 
+firebase.auth().getRedirectResult().then((result) => {
+    if (result.user) {
+      alert("Connecté en tant que " + result.user.email);
+    }
+  }).catch((error) => {
+    console.error("Erreur après redirection :", error);
+  });
+
 // Connexion avec Google
 function login() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider)
-    .then((result) => {
-      alert("Connecté en tant que " + result.user.email);
-      // Ne pas recharger la page, onAuthStateChanged s’en occupe
-    })
-    .catch((error) => {
-      console.error("Erreur de connexion :", error);
-    });
-}
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithRedirect(provider);
+  }
 
 class SheetApp {
   constructor() {
