@@ -20,11 +20,20 @@
     <a href="shared.html" class="nav-btn">Fiches partagées</a>
   </div>
 
-  <div style="text-align: center; margin-bottom: 20px;">
-    <button id="loginBtn" class="btn" onclick="login()">Connexion admin</button>
-    <button id="logoutBtn" class="btn" style="display: none;">Déconnexion</button>
-    <p id="userEmail" style="margin-top: 10px; font-weight: bold;"></p>
+  <div id="loginAdminContainer" style="text-align:center; margin-bottom:20px;">
+    <input
+      type="password"
+      id="adminPassword"
+      placeholder="Mot de passe admin"
+      style="padding: 8px; font-size: 1rem; width: 250px;"
+    />
+    <button id="adminLoginBtn" class="btn" style="margin-left: 10px;">Connexion admin</button>
+    <p id="loginMessage" style="color: red; margin-top: 10px;"></p>
   </div>
+  
+  <button id="logoutAdminBtn" class="btn" style="display:none; margin-bottom:20px;">Déconnexion admin</button>
+
+ 
 
   <div id="submitSection" class="section">
     <div class="card">
