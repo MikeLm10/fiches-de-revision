@@ -20,6 +20,11 @@
     <a href="shared.html" class="nav-btn">Fiches partagées</a>
   </div>
 
+  <!-- BOUTON ADMIN -->
+  <div style="text-align: center; margin-bottom: 20px;">
+    <button onclick="login()" class="btn">Connexion admin</button>
+  </div>
+
   <div id="submitSection" class="section">
     <div class="card">
       <h2>Nouvelle fiche</h2>
@@ -127,9 +132,10 @@
   <img id="modalImage" src="" alt="Image agrandie">
 </div>
 
-
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
