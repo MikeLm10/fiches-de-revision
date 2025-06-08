@@ -22,14 +22,21 @@
 
   <div id="loginAdminContainer" style="text-align:center; margin-bottom:20px;">
     <input
+      type="email"
+      id="adminEmail"
+      placeholder="Email admin"
+      style="padding: 8px; font-size: 1rem; width: 180px;"
+    />
+    <input
       type="password"
       id="adminPassword"
       placeholder="Mot de passe admin"
-      style="padding: 8px; font-size: 1rem; width: 250px;"
+      style="padding: 8px; font-size: 1rem; width: 150px;"
     />
     <button id="adminLoginBtn" class="btn" style="margin-left: 10px;">Connexion admin</button>
     <p id="loginMessage" style="color: red; margin-top: 10px;"></p>
   </div>
+  <button id="logoutAdminBtn" class="btn" style="display:none; margin-bottom:20px;">Déconnexion admin</button>
   
   <button id="logoutAdminBtn" class="btn" style="display:none; margin-bottom:20px;">Déconnexion admin</button>
 

@@ -2,6 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebas
 import {
   getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
@@ -14,11 +17,14 @@ const firebaseConfig = {
 
 const appFirebase = initializeApp(firebaseConfig);
 const db = getFirestore(appFirebase);
+const auth = getAuth(appFirebase);
+
+const ADMIN_UID = "F7LCkFIgScevdVTL7GZudCi1IGA3";
 
 let isAdmin = false;
-const adminPassword = "Ieatpancakes@7";
 
 const adminLoginBtn = document.getElementById('adminLoginBtn');
+const adminEmailInput = document.getElementById('adminEmail');
 const adminPasswordInput = document.getElementById('adminPassword');
 const loginContainer = document.getElementById('loginAdminContainer');
 const logoutAdminBtn = document.getElementById('logoutAdminBtn');
@@ -28,22 +34,20 @@ function updateAdminUI() {
   if(logoutAdminBtn) logoutAdminBtn.style.display = isAdmin ? 'inline-block' : 'none';
 }
 
-if(adminLoginBtn) adminLoginBtn.onclick = () => {
-  if(adminPasswordInput.value.trim() === adminPassword){
-    isAdmin = true;
+if(adminLoginBtn) adminLoginBtn.onclick = async () => {
+  const email = adminEmailInput.value.trim();
+  const password = adminPasswordInput.value.trim();
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
     adminPasswordInput.value = "";
-    updateAdminUI();
-    app.renderAll();
-  } else {
-    document.getElementById('loginMessage').textContent = "Mot de passe incorrect.";
+  } catch (e) {
+    document.getElementById('loginMessage').textContent = "Connexion échouée.";
     setTimeout(()=>{ document.getElementById('loginMessage').textContent = ""; }, 2000);
   }
 };
 
 if(logoutAdminBtn) logoutAdminBtn.onclick = () => {
-  isAdmin = false;
-  updateAdminUI();
-  app.renderAll();
+  signOut(auth);
 };
 
 function showSection(id) {
@@ -54,20 +58,17 @@ function showSection(id) {
   if (id === 'pending') app.renderPending();
   else if (id === 'approved') app.renderApproved();
 }
-
 window.showSection = showSection;
 
 function showImage(src) {
   document.getElementById('modalImage').src = src;
   document.getElementById('imageModal').style.display = 'flex';
 }
-
 window.showImage = showImage;
 
 function closeModal() {
   document.getElementById('imageModal').style.display = 'none';
 }
-
 window.closeModal = closeModal;
 
 class SheetApp {
@@ -97,7 +98,7 @@ class SheetApp {
           timestamp: Date.now()
         };
 
-        // PHOTOS : on cherche par l'id exact du champ (dans ton HTML c'est photoInput)
+        // PHOTOS
         const fileInput = document.getElementById('photoInput');
         const files = fileInput && fileInput.files ? fileInput.files : [];
         if(files && files.length){
@@ -179,14 +180,19 @@ class SheetApp {
       console.log("Le container #pendingContainer n'existe pas !");
       return;
     }
-    const q = query(collection(db, "fiches"), where("status", "==", "pending"));
+    // On récupère TOUTES les fiches si admin, sinon rien (règle firestore)
+    let q;
+    if(isAdmin){
+      q = query(collection(db, "fiches"), where("status", "in", ["pending"]));
+    } else {
+      container.innerHTML = `<p class="empty-state">Connecte-toi en admin pour voir les fiches en attente.</p>`;
+      return;
+    }
     const snapshot = await getDocs(q);
     let sheets = [];
     snapshot.forEach(docSnap => {
       sheets.push({id: docSnap.id, ...docSnap.data()});
     });
-    // DEBUG : affiche le contenu récupéré
-    console.log("Fiches en attente :", sheets);
 
     if(!sheets.length){
       container.innerHTML = `<p class="empty-state">Aucune fiche en attente.</p>`;
@@ -271,3 +277,10 @@ class SheetApp {
 
 window.app = new SheetApp();
 updateAdminUI();
+
+// Gestion de l'état de connexion admin
+onAuthStateChanged(auth, (user) => {
+  isAdmin = user && user.uid === ADMIN_UID;
+  updateAdminUI();
+  if(window.app) window.app.renderAll();
+});
