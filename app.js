@@ -1,14 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  doc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  where
+  getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, orderBy
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -16,240 +8,222 @@ const firebaseConfig = {
   authDomain: "fiches-florimont.firebaseapp.com",
   projectId: "fiches-florimont",
   storageBucket: "fiches-florimont.appspot.com",
-  messagingSenderId: "861008333499",
-  appId: "1:861008333499:web:57bb7a0ec07b820164b47de",
-  measurementId: "G-WDQ8BMJ5W5"
+  messagingSenderId: "594088148387",
+  appId: "1:594088148387:web:5d99f56b0b07ab16d3cdb1"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
-
-const adminPassword = "Ieatpancakes@7";
-
-const loginContainer = document.getElementById("loginAdminContainer");
-const adminPasswordInput = document.getElementById("adminPassword");
-const adminLoginBtn = document.getElementById("adminLoginBtn");
-const logoutAdminBtn = document.getElementById("logoutAdminBtn");
-const loginMessage = document.getElementById("loginMessage");
+const appFirebase = initializeApp(firebaseConfig);
+const db = getFirestore(appFirebase);
 
 let isAdmin = false;
+const adminPassword = "Ieatpancakes@7";
+
+const adminLoginBtn = document.getElementById('adminLoginBtn');
+const adminPasswordInput = document.getElementById('adminPasswordInput');
+const loginContainer = document.getElementById('loginContainer');
+const logoutAdminBtn = document.getElementById('logoutAdminBtn');
 
 function updateAdminUI() {
-  const pendingSection = document.getElementById("pendingSection");
-  const navBtns = document.querySelectorAll(".nav-btn");
-
-  if (isAdmin) {
-    loginContainer.style.display = "none";
-    logoutAdminBtn.style.display = "inline-block";
-    pendingSection.style.display = "block";
-
-    navBtns.forEach(btn => {
-      if (btn.innerText.toLowerCase().includes("attente")) {
-        btn.style.display = "inline-block";
-      }
-    });
-  } else {
-    loginContainer.style.display = "block";
-    logoutAdminBtn.style.display = "none";
-    pendingSection.style.display = "none";
-
-    navBtns.forEach(btn => {
-      if (btn.innerText.toLowerCase().includes("attente")) {
-        btn.style.display = "none";
-      }
-    });
-  }
+  loginContainer.style.display = isAdmin ? 'none' : 'block';
+  logoutAdminBtn.style.display = isAdmin ? 'inline-block' : 'none';
 }
 
-adminLoginBtn.addEventListener("click", () => {
-  const entered = adminPasswordInput.value.trim();
-  if (entered === adminPassword) {
+if(adminLoginBtn) adminLoginBtn.onclick = () => {
+  if(adminPasswordInput.value.trim() === adminPassword){
     isAdmin = true;
-    loginMessage.textContent = "";
     adminPasswordInput.value = "";
     updateAdminUI();
     app.renderAll();
   } else {
-    loginMessage.textContent = "Mot de passe incorrect.";
+    alert("Mot de passe incorrect.");
   }
-});
+};
 
-logoutAdminBtn.addEventListener("click", () => {
+if(logoutAdminBtn) logoutAdminBtn.onclick = () => {
   isAdmin = false;
   updateAdminUI();
-  app.renderApproved();
-});
+  app.renderAll();
+};
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
+  document.getElementById(id + 'Section').style.display = 'block';
+  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`.nav-btn[onclick="showSection('${id}')"]`).classList.add('active');
+  if (id === 'pending') app.renderPending();
+  else if (id === 'approved') app.renderApproved();
+}
+
+window.showSection = showSection;
+
+function showImage(src) {
+  document.getElementById('modalImage').src = src;
+  document.getElementById('imageModal').style.display = 'flex';
+}
+
+window.showImage = showImage;
+
+function closeModal() {
+  document.getElementById('imageModal').style.display = 'none';
+}
+
+window.closeModal = closeModal;
 
 class SheetApp {
   constructor() {
-    this.selectedPhotos = [];
-    this.bindEvents();
+    this.setupForm();
     this.renderApproved();
+    this.renderPending();
+    this.setupFilters();
   }
 
-  bindEvents() {
-    document.getElementById('revisionForm').addEventListener('submit', e => this.submitSheet(e));
-    document.getElementById('photoInput').addEventListener('change', e => this.handlePhotoSelect(e));
-    document.getElementById('searchInput').addEventListener('input', () => this.renderApproved());
-    document.getElementById('sortSelect').addEventListener('change', () => this.renderApproved());
-
-    const uploadArea = document.querySelector('.photo-upload');
-    uploadArea.addEventListener('dragover', e => {
-      e.preventDefault();
-      uploadArea.classList.add('dragover');
-    });
-    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-    uploadArea.addEventListener('drop', e => {
-      e.preventDefault();
-      uploadArea.classList.remove('dragover');
-      this.handlePhotoSelect({ target: { files: e.dataTransfer.files } });
-    });
-  }
-
-  handlePhotoSelect(e) {
-    const files = Array.from(e.target.files);
-    files.forEach(file => {
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`Le fichier ${file.name} est trop volumineux (max 5MB)`);
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        this.selectedPhotos.push({ name: file.name, data: event.target.result });
-        this.updatePhotoPreview();
+  setupForm() {
+    const form = document.getElementById('sheetForm');
+    if(form){
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const data = {
+          firstName: form.firstName.value.trim(),
+          lastName: form.lastName.value.trim(),
+          email: form.email.value.trim(),
+          subject: form.subject.value.trim(),
+          grade: form.grade.value.trim(),
+          pathway: form.pathway.value.trim(),
+          chapter: form.chapter.value.trim(),
+          date: form.date.value,
+          content: form.content.value.trim(),
+          photos: [],
+          status: "pending",
+          timestamp: Date.now()
+        };
+        // Photos
+        const files = form.photos.files;
+        if(files && files.length){
+          for(let i=0;i<files.length;i++){
+            const file = files[i];
+            const reader = new FileReader();
+            await new Promise(res=>{
+              reader.onload = (evt)=>{
+                data.photos.push({name:file.name, data:evt.target.result});
+                res();
+              };
+              reader.readAsDataURL(file);
+            });
+          }
+        }
+        await addDoc(collection(db,"fiches"),data);
+        form.reset();
+        document.getElementById('submitMessage').textContent = "Fiche envoyée !";
+        setTimeout(()=>{document.getElementById('submitMessage').textContent = "";}, 2000);
+        this.renderPending();
       };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  updatePhotoPreview() {
-    const preview = document.getElementById('photoPreview');
-    preview.innerHTML = this.selectedPhotos.map((photo, index) => `
-      <div class="photo-item">
-        <img src="${photo.data}" alt="${photo.name}">
-        <button type="button" class="photo-remove" onclick="app.removePhoto(${index})">×</button>
-      </div>`).join('');
-  }
-
-  removePhoto(index) {
-    this.selectedPhotos.splice(index, 1);
-    this.updatePhotoPreview();
-  }
-
-  async submitSheet(e) {
-    e.preventDefault();
-
-    const sheet = {
-      firstName: document.getElementById('firstName').value,
-      lastName: document.getElementById('lastName').value,
-      email: document.getElementById('email').value,
-      pathway: document.getElementById('pathway').value,
-      grade: document.getElementById('grade').value,
-      subject: document.getElementById('subject').value,
-      chapter: document.getElementById('chapter').value,
-      content: document.getElementById('content').value,
-      photos: [...this.selectedPhotos],
-      date: new Date().toLocaleDateString('fr-FR'),
-      status: "pending"
-    };
-
-    try {
-      await addDoc(collection(db, "fiches"), sheet);
-      alert("Fiche soumise avec succès ! Elle apparaîtra une fois validée.");
-      e.target.reset();
-      this.selectedPhotos = [];
-      this.updatePhotoPreview();
-      this.renderAll();
-    } catch (error) {
-      alert("Erreur lors de l'envoi de la fiche.");
-      console.error(error);
     }
   }
 
-  async approveSheet(docId, data) {
-    if (!isAdmin) return alert("Accès refusé");
-    await updateDoc(doc(db, "fiches", docId), { status: "approved" });
-    await addDoc(collection(db, "shared"), data);
-    this.renderAll();
-  }
-
-  async deleteSheet(docId) {
-    if (!isAdmin) return alert("Accès refusé");
-    if (confirm("Êtes-vous sûr de vouloir supprimer cette fiche ?")) {
-      await deleteDoc(doc(db, "fiches", docId));
-      this.renderAll();
-    }
-  }
-
-  async renderPending() {
-    if (!isAdmin) return;
-    const container = document.getElementById('pendingContainer');
-    const q = query(collection(db, "fiches"), where("status", "==", "pending"));
+  async renderApproved() {
+    const container = document.getElementById('approvedContainer');
+    if (!container) return;
+    const q = query(collection(db, "fiches"), where("status", "==", "approved"));
     const snapshot = await getDocs(q);
-    if (snapshot.empty) {
-      container.innerHTML = '<p class="empty-state">Aucune fiche en attente.</p>';
+    let sheets = [];
+    snapshot.forEach(docSnap => {
+      sheets.push({id: docSnap.id, ...docSnap.data()});
+    });
+    // Tri/filtrage
+    const search = document.getElementById('searchInput')?.value?.toLowerCase() || "";
+    let sort = document.getElementById('sortSelect')?.value || "recent";
+    if(search){
+      sheets = sheets.filter(s =>
+        (s.chapter+" "+s.content+" "+s.firstName+" "+s.lastName+" "+s.subject+" "+s.grade+" "+s.pathway)
+        .toLowerCase().includes(search)
+      );
+    }
+    if(sort==="recent") sheets.sort((a,b)=>b.timestamp-a.timestamp);
+    else if(sort==="oldest") sheets.sort((a,b)=>a.timestamp-b.timestamp);
+    else if(sort==="subject") sheets.sort((a,b)=>a.subject.localeCompare(b.subject));
+    else if(sort==="pathway") sheets.sort((a,b)=>a.pathway.localeCompare(b.pathway));
+
+    if(!sheets.length){
+      container.innerHTML = `<p class="empty-state">Aucune fiche validée.</p>`;
       return;
     }
-
-    container.innerHTML = '';
-    snapshot.forEach(docSnap => {
-      const s = docSnap.data();
+    container.innerHTML = "";
+    sheets.forEach(s=>{
       container.innerHTML += `
         <div class="sheet-card">
           <div class="sheet-title">${s.chapter}</div>
           <div class="sheet-meta">
             ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
           </div>
-          <div class="sheet-content">${s.content}</div>
-          ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo">`).join('')}</div>` : ''}
+          <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
+          ${s.photos?.length
+            ? `<div class="sheet-photos">${s.photos.map(p =>
+                `<img src="${p.data}" alt="${p.name}" onclick="showImage('${p.data}')">`
+              ).join('')}</div>`
+            : ''
+          }
           <div class="sheet-actions">
-            <button class="btn btn-small" onclick='app.approveSheet("${docSnap.id}", ${JSON.stringify(s).replace(/"/g, "&quot;")})'>Valider</button>
-            <button class="btn btn-small" onclick='app.deleteSheet("${docSnap.id}")'>Supprimer</button>
+            <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Exporter PDF</button>
           </div>
         </div>`;
     });
   }
 
-  async renderApproved() {
-    const container = document.getElementById('approvedContainer');
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const sort = document.getElementById('sortSelect').value;
-
-    const q = query(collection(db, "fiches"), where("status", "==", "approved"));
+  async renderPending() {
+    const container = document.getElementById('pendingContainer');
+    if (!container) return;
+    const q = query(collection(db, "fiches"), where("status", "==", "pending"));
     const snapshot = await getDocs(q);
-    let results = [];
-    snapshot.forEach(docSnap => results.push(docSnap.data()));
-
-    results = results.filter(s =>
-      s.chapter.toLowerCase().includes(search) ||
-      s.content.toLowerCase().includes(search) ||
-      s.subject.toLowerCase().includes(search)
-    );
-
-    switch (sort) {
-      case "recent": results.sort((a, b) => b.date.localeCompare(a.date)); break;
-      case "oldest": results.sort((a, b) => a.date.localeCompare(b.date)); break;
-      case "subject": results.sort((a, b) => a.subject.localeCompare(b.subject)); break;
-      case "pathway": results.sort((a, b) => a.pathway.localeCompare(b.pathway)); break;
-    }
-
-    if (results.length === 0) {
-      container.innerHTML = '<p class="empty-state">Aucune fiche trouvée.</p>';
+    let sheets = [];
+    snapshot.forEach(docSnap => {
+      sheets.push({id: docSnap.id, ...docSnap.data()});
+    });
+    if(!sheets.length){
+      container.innerHTML = `<p class="empty-state">Aucune fiche en attente.</p>`;
       return;
     }
+    container.innerHTML = "";
+    sheets.forEach(s=>{
+      let actionsHtml = "";
+      if(isAdmin){
+        actionsHtml = `
+          <button class="btn btn-small" onclick='app.approveSheet("${s.id}")'>Valider</button>
+          <button class="btn btn-small" onclick='app.deleteSheet("${s.id}")'>Supprimer</button>
+        `;
+      }
+      container.innerHTML += `
+        <div class="sheet-card">
+          <div class="sheet-title">${s.chapter}</div>
+          <div class="sheet-meta">
+            ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
+          </div>
+          <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
+          ${s.photos?.length
+            ? `<div class="sheet-photos">${s.photos.map(p =>
+                `<img src="${p.data}" alt="${p.name}" onclick="showImage('${p.data}')">`
+              ).join('')}</div>`
+            : ''
+          }
+          <div class="sheet-actions">
+            ${actionsHtml}
+            <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Exporter PDF</button>
+          </div>
+        </div>`;
+    });
+  }
 
-    container.innerHTML = results.map(s => `
-      <div class="sheet-card">
-        <div class="sheet-title">${s.chapter}</div>
-        <div class="sheet-meta">
-          ${s.firstName} ${s.lastName} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
-        </div>
-        <div class="sheet-content">${s.content}</div>
-        ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(p => `<img src="${p.data}" alt="photo" onclick="showImage('${p.data}')">`).join('')}</div>` : ''}
-        <div class="sheet-actions">
-          <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g, "&quot;")})'>Exporter PDF</button>
-        </div>
-      </div>`).join('');
+  async approveSheet(id) {
+    await updateDoc(doc(db,"fiches",id), {status:"approved"});
+    this.renderPending();
+    this.renderApproved();
+  }
+
+  async deleteSheet(id) {
+    if(confirm("Supprimer cette fiche ?")){
+      await deleteDoc(doc(db,"fiches",id));
+      this.renderPending();
+      this.renderApproved();
+    }
   }
 
   exportPDF(sheet) {
@@ -260,7 +234,13 @@ class SheetApp {
       <p><strong>Auteur :</strong> ${sheet.firstName} ${sheet.lastName}</p>
       <p><strong>Classe :</strong> ${sheet.grade} – ${sheet.subject} – ${sheet.pathway}</p>
       <p><strong>Date :</strong> ${sheet.date}</p>
-      <div>${sheet.content.replace(/\n/g, '<br>')}</div>
+      <div>${sheet.content.replace(/\n/g,'<br>')}</div>
+      ${sheet.photos?.length
+        ? sheet.photos.map(p =>
+            `<img src="${p.data}" alt="${p.name}" style="max-width:100%;height:auto;margin-top:10px;">`
+          ).join('')
+        : ''
+      }
       </body></html>
     `);
     win.document.close();
@@ -271,24 +251,14 @@ class SheetApp {
     this.renderPending();
     this.renderApproved();
   }
+
+  setupFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    if(searchInput) searchInput.oninput = ()=>this.renderApproved();
+    if(sortSelect) sortSelect.onchange = ()=>this.renderApproved();
+  }
 }
 
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
-  document.getElementById(id + 'Section').style.display = 'block';
-  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelector(`.nav-btn[onclick="showSection('${id}')"]`).classList.add('active');
-}
-
-function showImage(src) {
-  document.getElementById('modalImage').src = src;
-  document.getElementById('imageModal').style.display = 'flex';
-}
-
-function closeModal() {
-  document.getElementById('imageModal').style.display = 'none';
-}
-
-const app = new SheetApp();
-
+window.app = new SheetApp();
 updateAdminUI();
