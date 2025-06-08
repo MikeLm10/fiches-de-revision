@@ -19,13 +19,13 @@ let isAdmin = false;
 const adminPassword = "Ieatpancakes@7";
 
 const adminLoginBtn = document.getElementById('adminLoginBtn');
-const adminPasswordInput = document.getElementById('adminPasswordInput');
-const loginContainer = document.getElementById('loginContainer');
+const adminPasswordInput = document.getElementById('adminPassword'); // <<<<< CORRIGÉ ICI
+const loginContainer = document.getElementById('loginAdminContainer'); // <<<<< Ton ID HTML corrigé
 const logoutAdminBtn = document.getElementById('logoutAdminBtn');
 
 function updateAdminUI() {
-  loginContainer.style.display = isAdmin ? 'none' : 'block';
-  logoutAdminBtn.style.display = isAdmin ? 'inline-block' : 'none';
+  if(loginContainer) loginContainer.style.display = isAdmin ? 'none' : 'block';
+  if(logoutAdminBtn) logoutAdminBtn.style.display = isAdmin ? 'inline-block' : 'none';
 }
 
 if(adminLoginBtn) adminLoginBtn.onclick = () => {
@@ -35,7 +35,8 @@ if(adminLoginBtn) adminLoginBtn.onclick = () => {
     updateAdminUI();
     app.renderAll();
   } else {
-    alert("Mot de passe incorrect.");
+    document.getElementById('loginMessage').textContent = "Mot de passe incorrect.";
+    setTimeout(()=>{ document.getElementById('loginMessage').textContent = ""; }, 2000);
   }
 };
 
@@ -78,7 +79,9 @@ class SheetApp {
   }
 
   setupForm() {
-    const form = document.getElementById('sheetForm');
+    // Ton formulaire d'envoi de fiche peut avoir id="revisionForm" ou "sheetForm"
+    // On gère les deux pour compatibilité
+    const form = document.getElementById('sheetForm') || document.getElementById('revisionForm');
     if(form){
       form.onsubmit = async (e) => {
         e.preventDefault();
@@ -90,14 +93,19 @@ class SheetApp {
           grade: form.grade.value.trim(),
           pathway: form.pathway.value.trim(),
           chapter: form.chapter.value.trim(),
-          date: form.date.value,
+          date: form.date ? form.date.value : "", // Certains forms n'ont pas le champ date
           content: form.content.value.trim(),
           photos: [],
           status: "pending",
           timestamp: Date.now()
         };
         // Photos
-        const files = form.photos.files;
+        let files = [];
+        if(form.photos && form.photos.files.length) {
+          files = form.photos.files;
+        } else if(form.photoInput && form.photoInput.files.length) {
+          files = form.photoInput.files;
+        }
         if(files && files.length){
           for(let i=0;i<files.length;i++){
             const file = files[i];
@@ -113,8 +121,10 @@ class SheetApp {
         }
         await addDoc(collection(db,"fiches"),data);
         form.reset();
-        document.getElementById('submitMessage').textContent = "Fiche envoyée !";
-        setTimeout(()=>{document.getElementById('submitMessage').textContent = "";}, 2000);
+        if(document.getElementById('submitMessage')){
+          document.getElementById('submitMessage').textContent = "Fiche envoyée !";
+          setTimeout(()=>{document.getElementById('submitMessage').textContent = "";}, 2000);
+        }
         this.renderPending();
       };
     }
