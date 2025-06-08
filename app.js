@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, orderBy
+  getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -19,8 +19,8 @@ let isAdmin = false;
 const adminPassword = "Ieatpancakes@7";
 
 const adminLoginBtn = document.getElementById('adminLoginBtn');
-const adminPasswordInput = document.getElementById('adminPassword'); // <<<<< CORRIGÉ ICI
-const loginContainer = document.getElementById('loginAdminContainer'); // <<<<< Ton ID HTML corrigé
+const adminPasswordInput = document.getElementById('adminPassword');
+const loginContainer = document.getElementById('loginAdminContainer');
 const logoutAdminBtn = document.getElementById('logoutAdminBtn');
 
 function updateAdminUI() {
@@ -79,8 +79,6 @@ class SheetApp {
   }
 
   setupForm() {
-    // Ton formulaire d'envoi de fiche peut avoir id="revisionForm" ou "sheetForm"
-    // On gère les deux pour compatibilité
     const form = document.getElementById('sheetForm') || document.getElementById('revisionForm');
     if(form){
       form.onsubmit = async (e) => {
@@ -93,21 +91,17 @@ class SheetApp {
           grade: form.grade.value.trim(),
           pathway: form.pathway.value.trim(),
           chapter: form.chapter.value.trim(),
-          date: form.date ? form.date.value : "", // Certains forms n'ont pas le champ date
           content: form.content.value.trim(),
           photos: [],
           status: "pending",
           timestamp: Date.now()
         };
-        // Photos
-        let files = [];
-        if(form.photos && form.photos.files.length) {
-          files = form.photos.files;
-        } else if(form.photoInput && form.photoInput.files.length) {
-          files = form.photoInput.files;
-        }
+
+        // PHOTOS : on cherche par l'id exact du champ (dans ton HTML c'est photoInput)
+        const fileInput = document.getElementById('photoInput');
+        const files = fileInput && fileInput.files ? fileInput.files : [];
         if(files && files.length){
-          for(let i=0;i<files.length;i++){
+          for(let i=0; i<files.length; i++){
             const file = files[i];
             const reader = new FileReader();
             await new Promise(res=>{
@@ -119,6 +113,7 @@ class SheetApp {
             });
           }
         }
+
         await addDoc(collection(db,"fiches"),data);
         form.reset();
         if(document.getElementById('submitMessage')){
@@ -139,7 +134,7 @@ class SheetApp {
     snapshot.forEach(docSnap => {
       sheets.push({id: docSnap.id, ...docSnap.data()});
     });
-    // Tri/filtrage
+
     const search = document.getElementById('searchInput')?.value?.toLowerCase() || "";
     let sort = document.getElementById('sortSelect')?.value || "recent";
     if(search){
@@ -163,8 +158,7 @@ class SheetApp {
         <div class="sheet-card">
           <div class="sheet-title">${s.chapter}</div>
           <div class="sheet-meta">
-            ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
-          </div>
+            ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}</div>
           <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
           ${s.photos?.length
             ? `<div class="sheet-photos">${s.photos.map(p =>
@@ -181,13 +175,19 @@ class SheetApp {
 
   async renderPending() {
     const container = document.getElementById('pendingContainer');
-    if (!container) return;
+    if (!container) {
+      console.log("Le container #pendingContainer n'existe pas !");
+      return;
+    }
     const q = query(collection(db, "fiches"), where("status", "==", "pending"));
     const snapshot = await getDocs(q);
     let sheets = [];
     snapshot.forEach(docSnap => {
       sheets.push({id: docSnap.id, ...docSnap.data()});
     });
+    // DEBUG : affiche le contenu récupéré
+    console.log("Fiches en attente :", sheets);
+
     if(!sheets.length){
       container.innerHTML = `<p class="empty-state">Aucune fiche en attente.</p>`;
       return;
@@ -205,7 +205,7 @@ class SheetApp {
         <div class="sheet-card">
           <div class="sheet-title">${s.chapter}</div>
           <div class="sheet-meta">
-            ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway} – ${s.date}
+            ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}
           </div>
           <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
           ${s.photos?.length
@@ -243,7 +243,6 @@ class SheetApp {
       <h1>${sheet.chapter}</h1>
       <p><strong>Auteur :</strong> ${sheet.firstName} ${sheet.lastName}</p>
       <p><strong>Classe :</strong> ${sheet.grade} – ${sheet.subject} – ${sheet.pathway}</p>
-      <p><strong>Date :</strong> ${sheet.date}</p>
       <div>${sheet.content.replace(/\n/g,'<br>')}</div>
       ${sheet.photos?.length
         ? sheet.photos.map(p =>
