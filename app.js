@@ -19,7 +19,7 @@ const appFirebase = initializeApp(firebaseConfig);
 const db = getFirestore(appFirebase);
 const auth = getAuth(appFirebase);
 
-const ADMIN_UID = "F7LCkFIgScevdVTL7GZudCi1IGA3";
+const ADMIN_UID = "Ywm5UCbhR3crVa284RxtK4j6sbs2";
 
 let isAdmin = false;
 
