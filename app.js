@@ -2,9 +2,25 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebas
 import {
   getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-import {
-  getStorage, ref, uploadBytes, getDownloadURL
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+
+
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmi9cjnii/upload"; 
+const CLOUDINARY_UPLOAD_PRESET = "site_fivhe";
+
+async function uploadPhotoToCloudinary(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+  const res = await fetch(CLOUDINARY_URL, {
+    method: 'POST',
+    body: formData
+  });
+  if(!res.ok) throw new Error("Erreur upload image Cloudinary");
+  const data = await res.json();
+  return data.secure_url;
+}
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
@@ -17,10 +33,9 @@ const firebaseConfig = {
 
 const appFirebase = initializeApp(firebaseConfig);
 const db = getFirestore(appFirebase);
-const storage = getStorage(appFirebase);
 
 let isAdmin = false;
-const adminPassword = "Ieatpancakes@7"; // CHANGE ICI ton mot de passe admin si tu veux
+const adminPassword = "Ieatpancakes@7"; 
 
 const adminLoginBtn = document.getElementById('adminLoginBtn');
 const adminPasswordInput = document.getElementById('adminPassword');
@@ -71,13 +86,6 @@ function closeModal() {
 }
 window.closeModal = closeModal;
 
-// ---- AJOUT : fonction d'upload vers Firebase Storage ----
-async function uploadPhotoToStorage(file) {
-  const storageRef = ref(storage, 'photos/' + Date.now() + '_' + file.name);
-  await uploadBytes(storageRef, file);
-  return await getDownloadURL(storageRef);
-}
-
 class SheetApp {
   constructor() {
     this.setupForm();
@@ -92,14 +100,14 @@ class SheetApp {
       form.onsubmit = async (e) => {
         e.preventDefault();
 
-        // --- Upload des photos ---
+        // --- Upload des photos sur Cloudinary ---
         const fileInput = document.getElementById('photoInput');
         const files = fileInput && fileInput.files ? fileInput.files : [];
         let photoURLs = [];
         if(files && files.length){
           for(let i=0; i<files.length; i++){
             const file = files[i];
-            const url = await uploadPhotoToStorage(file);
+            const url = await uploadPhotoToCloudinary(file);
             photoURLs.push(url);
           }
         }
@@ -113,7 +121,7 @@ class SheetApp {
           pathway: form.pathway.value.trim(),
           chapter: form.chapter.value.trim(),
           content: form.content.value.trim(),
-          photos: photoURLs, // On stocke ici les URLs Firebase Storage
+          photos: photoURLs, 
           status: "pending",
           timestamp: Date.now()
         };
