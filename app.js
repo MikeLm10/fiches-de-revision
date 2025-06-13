@@ -4,7 +4,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 
-const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmi9cjnii/upload"; 
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmi9cjnli/upload"; 
 const CLOUDINARY_UPLOAD_PRESET = "site_fivhe";
 
 async function uploadPhotoToCloudinary(file) {
