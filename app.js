@@ -2,6 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebas
 import {
   getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import {
+  getStorage, ref, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
@@ -14,6 +17,7 @@ const firebaseConfig = {
 
 const appFirebase = initializeApp(firebaseConfig);
 const db = getFirestore(appFirebase);
+const storage = getStorage(appFirebase);
 
 let isAdmin = false;
 const adminPassword = "Ieatpancakes@7"; // CHANGE ICI ton mot de passe admin si tu veux
@@ -67,6 +71,13 @@ function closeModal() {
 }
 window.closeModal = closeModal;
 
+// ---- AJOUT : fonction d'upload vers Firebase Storage ----
+async function uploadPhotoToStorage(file) {
+  const storageRef = ref(storage, 'photos/' + Date.now() + '_' + file.name);
+  await uploadBytes(storageRef, file);
+  return await getDownloadURL(storageRef);
+}
+
 class SheetApp {
   constructor() {
     this.setupForm();
@@ -80,6 +91,19 @@ class SheetApp {
     if(form){
       form.onsubmit = async (e) => {
         e.preventDefault();
+
+        // --- Upload des photos ---
+        const fileInput = document.getElementById('photoInput');
+        const files = fileInput && fileInput.files ? fileInput.files : [];
+        let photoURLs = [];
+        if(files && files.length){
+          for(let i=0; i<files.length; i++){
+            const file = files[i];
+            const url = await uploadPhotoToStorage(file);
+            photoURLs.push(url);
+          }
+        }
+
         const data = {
           firstName: form.firstName.value.trim(),
           lastName: form.lastName.value.trim(),
@@ -89,30 +113,14 @@ class SheetApp {
           pathway: form.pathway.value.trim(),
           chapter: form.chapter.value.trim(),
           content: form.content.value.trim(),
-          photos: [],
+          photos: photoURLs, // On stocke ici les URLs Firebase Storage
           status: "pending",
           timestamp: Date.now()
         };
 
-        // PHOTOS
-        const fileInput = document.getElementById('photoInput');
-        const files = fileInput && fileInput.files ? fileInput.files : [];
-        if(files && files.length){
-          for(let i=0; i<files.length; i++){
-            const file = files[i];
-            const reader = new FileReader();
-            await new Promise(res=>{
-              reader.onload = (evt)=>{
-                data.photos.push({name:file.name, data:evt.target.result});
-                res();
-              };
-              reader.readAsDataURL(file);
-            });
-          }
-        }
-
         await addDoc(collection(db,"fiches"),data);
         form.reset();
+        if(document.getElementById('photoPreview')) document.getElementById('photoPreview').innerHTML = "";
         if(document.getElementById('submitMessage')){
           document.getElementById('submitMessage').textContent = "Fiche envoyée !";
           setTimeout(()=>{document.getElementById('submitMessage').textContent = "";}, 2000);
@@ -158,8 +166,8 @@ class SheetApp {
             ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}</div>
           <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
           ${s.photos?.length
-            ? `<div class="sheet-photos">${s.photos.map(p =>
-                `<img src="${p.data}" alt="${p.name}" onclick="showImage('${p.data}')">`
+            ? `<div class="sheet-photos">${s.photos.map(url =>
+                `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`
               ).join('')}</div>`
             : ''
           }
@@ -204,8 +212,8 @@ class SheetApp {
           </div>
           <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
           ${s.photos?.length
-            ? `<div class="sheet-photos">${s.photos.map(p =>
-                `<img src="${p.data}" alt="${p.name}" onclick="showImage('${p.data}')">`
+            ? `<div class="sheet-photos">${s.photos.map(url =>
+                `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`
               ).join('')}</div>`
             : ''
           }
@@ -240,8 +248,8 @@ class SheetApp {
       <p><strong>Classe :</strong> ${sheet.grade} – ${sheet.subject} – ${sheet.pathway}</p>
       <div>${sheet.content.replace(/\n/g,'<br>')}</div>
       ${sheet.photos?.length
-        ? sheet.photos.map(p =>
-            `<img src="${p.data}" alt="${p.name}" style="max-width:100%;height:auto;margin-top:10px;">`
+        ? sheet.photos.map(url =>
+            `<img src="${url}" alt="Photo" style="max-width:100%;height:auto;margin-top:10px;">`
           ).join('')
         : ''
       }
