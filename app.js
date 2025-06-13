@@ -5,7 +5,7 @@ import {
 
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmi9cjnli/upload"; 
-const CLOUDINARY_UPLOAD_PRESET = "site_fivhe";
+const CLOUDINARY_UPLOAD_PRESET = "site_fiche";
 
 async function uploadPhotoToCloudinary(file) {
   const formData = new FormData();
