@@ -1,17 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where
+  getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, getDoc
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-
-const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmi9cjnli/upload"; 
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmi9cjnli/upload";
 const CLOUDINARY_UPLOAD_PRESET = "site_fiche";
 
 async function uploadPhotoToCloudinary(file) {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
   const res = await fetch(CLOUDINARY_URL, {
     method: 'POST',
     body: formData
@@ -20,7 +18,6 @@ async function uploadPhotoToCloudinary(file) {
   const data = await res.json();
   return data.secure_url;
 }
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
@@ -35,20 +32,33 @@ const appFirebase = initializeApp(firebaseConfig);
 const db = getFirestore(appFirebase);
 
 let isAdmin = false;
-const adminPassword = "Ieatpancakes@7"; 
 
 const adminLoginBtn = document.getElementById('adminLoginBtn');
 const adminPasswordInput = document.getElementById('adminPassword');
 const loginContainer = document.getElementById('loginAdminContainer');
 const logoutAdminBtn = document.getElementById('logoutAdminBtn');
 
+async function tryAdminLogin(passwordTry) {
+  const adminDocRef = doc(db, "admin", "main");
+  const adminDocSnap = await getDoc(adminDocRef);
+  if (adminDocSnap.exists()) {
+    const data = adminDocSnap.data();
+    return data.password === passwordTry;
+  }
+  return false;
+}
+
 function updateAdminUI() {
   if(loginContainer) loginContainer.style.display = isAdmin ? 'none' : 'block';
   if(logoutAdminBtn) logoutAdminBtn.style.display = isAdmin ? 'inline-block' : 'none';
+  const pendingNavBtn = document.getElementById('pendingNavBtn');
+  if (pendingNavBtn) pendingNavBtn.style.display = isAdmin ? 'inline-flex' : 'none';
 }
 
-if(adminLoginBtn) adminLoginBtn.onclick = () => {
-  if(adminPasswordInput.value.trim() === adminPassword){
+if(adminLoginBtn) adminLoginBtn.onclick = async () => {
+  const passwordTry = adminPasswordInput.value.trim();
+  const isOk = await tryAdminLogin(passwordTry);
+  if(isOk){
     isAdmin = true;
     adminPasswordInput.value = "";
     updateAdminUI();
@@ -86,12 +96,53 @@ function closeModal() {
 }
 window.closeModal = closeModal;
 
+function createPhotoPreview(files) {
+  const preview = document.getElementById('photoPreview');
+  if (!preview) return;
+  preview.innerHTML = "";
+  Array.from(files).forEach((file, idx) => {
+    if (!file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const div = document.createElement('div');
+      div.className = "photo-item";
+      div.innerHTML = `
+        <img src="${e.target.result}" alt="Preview" style="cursor:pointer;">
+        <button class="photo-remove" data-index="${idx}">&times;</button>
+      `;
+      div.querySelector('img').onclick = function(ev) {
+        ev.stopPropagation();
+        document.getElementById('modalImage').src = e.target.result;
+        document.getElementById('imageModal').style.display = 'flex';
+      };
+      div.querySelector('.photo-remove').onclick = function(ev) {
+        ev.stopPropagation();
+        removePhotoAtIndex(idx);
+      };
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removePhotoAtIndex(idx) {
+  const input = document.getElementById('photoInput');
+  const dt = new DataTransfer();
+  const files = input.files;
+  for(let i=0; i<files.length; i++){
+    if(i !== idx) dt.items.add(files[i]);
+  }
+  input.files = dt.files;
+  createPhotoPreview(dt.files);
+}
+
 class SheetApp {
   constructor() {
     this.setupForm();
     this.renderApproved();
     this.renderPending();
     this.setupFilters();
+    this.setupPhotoPreview();
   }
 
   setupForm() {
@@ -99,8 +150,6 @@ class SheetApp {
     if(form){
       form.onsubmit = async (e) => {
         e.preventDefault();
-
-        // --- Upload des photos sur Cloudinary ---
         const fileInput = document.getElementById('photoInput');
         const files = fileInput && fileInput.files ? fileInput.files : [];
         let photoURLs = [];
@@ -111,7 +160,6 @@ class SheetApp {
             photoURLs.push(url);
           }
         }
-
         const data = {
           firstName: form.firstName.value.trim(),
           lastName: form.lastName.value.trim(),
@@ -121,11 +169,10 @@ class SheetApp {
           pathway: form.pathway.value.trim(),
           chapter: form.chapter.value.trim(),
           content: form.content.value.trim(),
-          photos: photoURLs, 
+          photos: photoURLs,
           status: "pending",
           timestamp: Date.now()
         };
-
         await addDoc(collection(db,"fiches"),data);
         form.reset();
         if(document.getElementById('photoPreview')) document.getElementById('photoPreview').innerHTML = "";
@@ -138,6 +185,29 @@ class SheetApp {
     }
   }
 
+  setupPhotoPreview() {
+    const input = document.getElementById('photoInput');
+    if(input){
+      input.onchange = function() {
+        createPhotoPreview(input.files);
+      };
+      const photoUploadDiv = document.querySelector('.photo-upload');
+      if(photoUploadDiv){
+        photoUploadDiv.ondragover = function(e){ e.preventDefault(); photoUploadDiv.classList.add('dragover'); };
+        photoUploadDiv.ondragleave = function(e){ e.preventDefault(); photoUploadDiv.classList.remove('dragover'); };
+        photoUploadDiv.ondrop = function(e){
+          e.preventDefault();
+          photoUploadDiv.classList.remove('dragover');
+          const dt = e.dataTransfer;
+          if(dt && dt.files && dt.files.length){
+            input.files = dt.files;
+            createPhotoPreview(dt.files);
+          }
+        };
+      }
+    }
+  }
+
   async renderApproved() {
     const container = document.getElementById('approvedContainer');
     if (!container) return;
@@ -147,7 +217,6 @@ class SheetApp {
     snapshot.forEach(docSnap => {
       sheets.push({id: docSnap.id, ...docSnap.data()});
     });
-
     const search = document.getElementById('searchInput')?.value?.toLowerCase() || "";
     let sort = document.getElementById('sortSelect')?.value || "recent";
     if(search){
@@ -160,7 +229,6 @@ class SheetApp {
     else if(sort==="oldest") sheets.sort((a,b)=>a.timestamp-b.timestamp);
     else if(sort==="subject") sheets.sort((a,b)=>a.subject.localeCompare(b.subject));
     else if(sort==="pathway") sheets.sort((a,b)=>a.pathway.localeCompare(b.pathway));
-
     if(!sheets.length){
       container.innerHTML = `<p class="empty-state">Aucune fiche validée.</p>`;
       return;
@@ -198,7 +266,6 @@ class SheetApp {
     snapshot.forEach(docSnap => {
       sheets.push({id: docSnap.id, ...docSnap.data()});
     });
-
     if(!sheets.length){
       container.innerHTML = `<p class="empty-state">Aucune fiche en attente.</p>`;
       return;

@@ -42,15 +42,16 @@ function displaySheets(sheets) {
 
   sheets.forEach(sheet => {
     const div = document.createElement("div");
-    div.className = "sheet-card";
+    div.className = "shared-sheet-card";
     div.innerHTML = `
-      <h3 class="sheet-title">${sheet.subject} - ${sheet.chapter}</h3>
-      <div class="sheet-meta">
-        <span><strong>${sheet.firstName} ${sheet.lastName}</strong></span>
-        <span>${sheet.grade} - ${sheet.pathway}</span>
-        <span>${sheet.email}</span>
+      <div class="shared-sheet-title">${sheet.chapter}</div>
+      <div class="shared-sheet-meta">
+        ${sheet.firstName ? sheet.firstName : ''} ${sheet.lastName ? sheet.lastName : ''} • 
+        ${sheet.subject ? sheet.subject : ''} • 
+        ${sheet.grade ? sheet.grade : ''} • 
+        ${sheet.pathway ? sheet.pathway : ''}
       </div>
-      <div class="sheet-content">${sheet.content}</div>
+      <div class="shared-sheet-content">${(sheet.content || '').replace(/\n/g,"<br>")}</div>
       ${sheet.photos?.length ? renderPhotos(sheet.photos) : ""}
     `;
     container.appendChild(div);
@@ -59,8 +60,8 @@ function displaySheets(sheets) {
 
 function renderPhotos(photos) {
   return `
-    <div class="sheet-photos">
-      ${photos.map(url => `<img src="${url}" onclick="openModal('${url}')">`).join("")}
+    <div class="shared-sheet-photos">
+      ${photos.map(url => `<img src="${url}" alt="Photo" onclick="openModal('${url}')">`).join("")}
     </div>
   `;
 }
@@ -68,17 +69,17 @@ function renderPhotos(photos) {
 function filterAndSortSheets() {
   const searchValue = searchInput.value.trim().toLowerCase();
   let filtered = approvedSheets.filter(sheet =>
-    sheet.subject?.toLowerCase().includes(searchValue) ||
-    sheet.chapter?.toLowerCase().includes(searchValue) ||
-    sheet.firstName?.toLowerCase().includes(searchValue) ||
-    sheet.lastName?.toLowerCase().includes(searchValue)
+    (sheet.subject || '').toLowerCase().includes(searchValue) ||
+    (sheet.chapter || '').toLowerCase().includes(searchValue) ||
+    (sheet.firstName || '').toLowerCase().includes(searchValue) ||
+    (sheet.lastName || '').toLowerCase().includes(searchValue)
   );
 
   const sort = sortSelect.value;
   if (sort === "recent") {
-    filtered.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+    filtered.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
   } else if (sort === "oldest") {
-    filtered.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+    filtered.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
   } else if (sort === "subject") {
     filtered.sort((a, b) => (a.subject || "").localeCompare(b.subject || ""));
   } else if (sort === "pathway") {

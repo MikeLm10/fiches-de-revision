@@ -15,8 +15,7 @@
 
   <div class="nav">
     <button class="nav-btn active" onclick="showSection('submit')">✏️ Créer une fiche</button>
-    <button class="nav-btn" onclick="showSection('approved')">✅ Fiches validées</button>
-    <button class="nav-btn" onclick="showSection('pending')">⏳ En attente</button>
+    <button class="nav-btn" id="pendingNavBtn" style="display:none;" onclick="showSection('pending')">⏳ En attente</button>
     <a href="shared.html" class="nav-btn">🔗 Fiches partagées</a>
   </div>
 
@@ -111,22 +110,6 @@
         <button type="submit" class="btn">📝 Soumettre la fiche</button>
       </form>
       <div id="submitMessage"></div>
-    </div>
-  </div>
-
-  <div id="approvedSection" class="section">
-    <div class="card">
-      <h2>✅ Fiches validées</h2>
-      <div class="search-filters">
-        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Rechercher par matière, chapitre, auteur...">
-        <select id="sortSelect" class="filter-select">
-          <option value="recent">📅 Plus récentes</option>
-          <option value="oldest">📅 Plus anciennes</option>
-          <option value="subject">📚 Par matière</option>
-          <option value="pathway">🎓 Par section</option>
-        </select>
-      </div>
-      <div id="approvedContainer"></div>
     </div>
   </div>
 
