@@ -38,6 +38,14 @@ const adminPasswordInput = document.getElementById('adminPassword');
 const loginContainer = document.getElementById('loginAdminContainer');
 const logoutAdminBtn = document.getElementById('logoutAdminBtn');
 
+function showToast(message) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = message;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2200);
+}
+
 async function tryAdminLogin(passwordTry) {
   const adminDocRef = doc(db, "admin", "main");
   const adminDocSnap = await getDoc(adminDocRef);
@@ -63,9 +71,9 @@ if(adminLoginBtn) adminLoginBtn.onclick = async () => {
     adminPasswordInput.value = "";
     updateAdminUI();
     app.renderAll();
+    showToast("Connexion admin réussie !");
   } else {
-    document.getElementById('loginMessage').textContent = "Mot de passe incorrect.";
-    setTimeout(()=>{ document.getElementById('loginMessage').textContent = ""; }, 2000);
+    showToast("Mot de passe incorrect.");
   }
 };
 
@@ -73,11 +81,19 @@ if(logoutAdminBtn) logoutAdminBtn.onclick = () => {
   isAdmin = false;
   updateAdminUI();
   app.renderAll();
+  showToast("Déconnecté du mode admin.");
 };
 
 function showSection(id) {
-  document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
-  document.getElementById(id + 'Section').style.display = 'block';
+  document.querySelectorAll('.section').forEach(sec => {
+    sec.classList.remove('active');
+    void sec.offsetWidth;
+    sec.style.display = 'none';
+  });
+  const section = document.getElementById(id + 'Section');
+  section.style.display = 'block';
+  void section.offsetWidth; 
+  section.classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelector(`.nav-btn[onclick="showSection('${id}')"]`).classList.add('active');
   if (id === 'pending') app.renderPending();
@@ -176,10 +192,7 @@ class SheetApp {
         await addDoc(collection(db,"fiches"),data);
         form.reset();
         if(document.getElementById('photoPreview')) document.getElementById('photoPreview').innerHTML = "";
-        if(document.getElementById('submitMessage')){
-          document.getElementById('submitMessage').textContent = "Fiche envoyée !";
-          setTimeout(()=>{document.getElementById('submitMessage').textContent = "";}, 2000);
-        }
+        showToast("Fiche envoyée !");
         this.renderPending();
       };
     }
@@ -234,24 +247,29 @@ class SheetApp {
       return;
     }
     container.innerHTML = "";
-    sheets.forEach(s=>{
-      container.innerHTML += `
-        <div class="sheet-card">
-          <div class="sheet-title">${s.chapter}</div>
-          <div class="sheet-meta">
-            ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}</div>
-          <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
-          ${s.photos?.length
-            ? `<div class="sheet-photos">${s.photos.map(url =>
-                `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`
-              ).join('')}</div>`
-            : ''
-          }
-          <div class="sheet-actions">
-            <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Exporter PDF</button>
-          </div>
-        </div>`;
-    });
+sheets.forEach((s, idx) => {
+  const div = document.createElement('div');
+  div.className = "sheet-card";
+  div.style.animationDelay = (idx * 80) + "ms";
+  div.innerHTML = `
+    <div class="sheet-title">${s.chapter}</div>
+    <div class="sheet-meta">
+      ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}
+    </div>
+    <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
+    ${s.photos?.length
+      ? `<div class="sheet-photos">${s.photos.map(url =>
+          `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`
+        ).join('')}</div>`
+      : ''
+    }
+    <div class="sheet-actions">
+      <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Exporter PDF</button>
+    </div>
+  `;
+  container.appendChild(div);
+});
+
   }
 
   async renderPending() {
@@ -271,7 +289,7 @@ class SheetApp {
       return;
     }
     container.innerHTML = "";
-    sheets.forEach(s=>{
+    sheets.forEach((s, idx) => {
       let actionsHtml = "";
       if(isAdmin){
         actionsHtml = `
@@ -279,31 +297,36 @@ class SheetApp {
           <button class="btn btn-small" onclick='app.deleteSheet("${s.id}")'>Supprimer</button>
         `;
       }
-      container.innerHTML += `
-        <div class="sheet-card">
-          <div class="sheet-title">${s.chapter}</div>
-          <div class="sheet-meta">
-            ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}
-          </div>
-          <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
-          ${s.photos?.length
-            ? `<div class="sheet-photos">${s.photos.map(url =>
-                `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`
-              ).join('')}</div>`
-            : ''
-          }
-          <div class="sheet-actions">
-            ${actionsHtml}
-            <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Exporter PDF</button>
-          </div>
-        </div>`;
+      const div = document.createElement('div');
+      div.className = "sheet-card";
+      div.style.animationDelay = (idx * 80) + "ms";
+      div.innerHTML = `
+        <div class="sheet-title">${s.chapter}</div>
+        <div class="sheet-meta">
+          ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}
+        </div>
+        <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
+        ${s.photos?.length
+          ? `<div class="sheet-photos">${s.photos.map(url =>
+              `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`
+            ).join('')}</div>`
+          : ''
+        }
+        <div class="sheet-actions">
+          ${actionsHtml}
+          <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Exporter PDF</button>
+        </div>
+      `;
+      container.appendChild(div);
     });
   }
+  
 
   async approveSheet(id) {
     await updateDoc(doc(db,"fiches",id), {status:"approved"});
     this.renderPending();
     this.renderApproved();
+    showToast("Fiche validée !");
   }
 
   async deleteSheet(id) {
@@ -311,23 +334,33 @@ class SheetApp {
       await deleteDoc(doc(db,"fiches",id));
       this.renderPending();
       this.renderApproved();
+      showToast("Fiche supprimée.");
     }
   }
 
   exportPDF(sheet) {
     const win = window.open('', '', 'height=700,width=800');
     win.document.write(`
-      <html><head><title>${sheet.chapter}</title></head><body>
-      <h1>${sheet.chapter}</h1>
-      <p><strong>Auteur :</strong> ${sheet.firstName} ${sheet.lastName}</p>
-      <p><strong>Classe :</strong> ${sheet.grade} – ${sheet.subject} – ${sheet.pathway}</p>
-      <div>${sheet.content.replace(/\n/g,'<br>')}</div>
-      ${sheet.photos?.length
-        ? sheet.photos.map(url =>
-            `<img src="${url}" alt="Photo" style="max-width:100%;height:auto;margin-top:10px;">`
-          ).join('')
-        : ''
-      }
+      <html>
+      <head>
+        <title>${sheet.chapter}</title>
+        <style>
+          body { font-family: Arial,sans-serif; padding:30px;}
+          h1 { color:#002f6c; border-bottom:2px solid #002f6c; padding-bottom:10px;}
+          .meta { font-size:1.1em; margin-bottom:18px;}
+          .content { background:#f3f4f6; padding:18px; border-radius:8px; font-size:1.13em;}
+          img { max-width:100%; margin-top:16px; border-radius:10px;}
+        </style>
+      </head>
+      <body>
+        <h1>Fiche de Révision : ${sheet.chapter}</h1>
+        <div class="meta">
+          <b>Auteur :</b> ${sheet.firstName} ${sheet.lastName}<br>
+          <b>Classe :</b> ${sheet.grade} – ${sheet.subject} – ${sheet.pathway}<br>
+          <b>Date :</b> ${new Date(sheet.timestamp).toLocaleDateString()}
+        </div>
+        <div class="content">${sheet.content.replace(/\n/g,'<br>')}</div>
+        ${sheet.photos?.length ? sheet.photos.map(url => `<img src="${url}">`).join('') : ''}
       </body></html>
     `);
     win.document.close();
@@ -347,5 +380,15 @@ class SheetApp {
   }
 }
 
+const darkBtn = document.getElementById('toggleDark');
+if(darkBtn){
+  darkBtn.onclick = () => {
+    document.body.classList.toggle('force-dark');
+    document.body.classList.toggle('force-light');
+    darkBtn.textContent = document.body.classList.contains('force-dark') ? '☀️' : '🌙';
+  };
+}
+
 window.app = new SheetApp();
 updateAdminUI();
+

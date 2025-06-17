@@ -20,19 +20,35 @@
   <div class="search-filters">
     <input type="text" id="sharedSearchInput" class="search-input" placeholder="🔍 Rechercher dans les fiches partagées...">
     <select id="sharedSortSelect" class="filter-select">
+      <option value="none">Aucun filtre</option>
       <option value="recent">📅 Plus récentes</option>
       <option value="oldest">📅 Plus anciennes</option>
       <option value="subject">📚 Par matière</option>
       <option value="pathway">🎓 Par section</option>
     </select>
+    
   </div>
+
+  <label style="font-size:1.11rem;cursor:pointer;">
+    <input type="checkbox" id="showOnlyFavs" style="vertical-align:middle;margin-right:4px;">
+    ⭐ Uniquement mes favoris
+  </label>
+
   <section id="sharedContainer"></section>
+</div>
+
+<div id="ficheModal" class="modal" style="display:none;" onclick="closeFicheModal()">
+  <button class="modal-close" onclick="closeFicheModal();event.stopPropagation();">×</button>
+  <div id="ficheModalContent" style="max-width:650px;width:96vw;background:white;border-radius:14px;box-shadow:0 4px 22px #00306b30;padding:28px;margin:auto;position:relative;" onclick="event.stopPropagation()">
+  </div>
 </div>
 
 <div id="imageModal" class="modal" onclick="closeModal()">
   <button class="modal-close" onclick="closeModal()">×</button>
   <img id="modalImage" src="" alt="Image agrandie">
 </div>
+
+<div id="toast"></div>
 
 <script type="module" src="shared.js"></script>
 </body>

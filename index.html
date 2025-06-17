@@ -7,7 +7,11 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
+  <button id="toggleDark" style="position:absolute;top:16px;right:22px;font-size:1.2em;z-index:100;background:none;border:none;cursor:pointer;">
+    🌙
+  </button>
+  <div id="toast"></div>
+  <div class="container">
   <div class="header">
     <h1>📚 Fiches de Révision</h1>
     <p class="subtitle">Partage de connaissances entre élèves</p>
@@ -76,19 +80,7 @@
           </div>
           <div class="form-group">
             <label for="subject" class="required">Matière</label>
-            <select id="subject" required>
-              <option value="">Sélectionner une matière</option>
-              <option value="Mathématiques">Mathématiques</option>
-              <option value="Français">Français</option>
-              <option value="Histoire">Histoire</option>
-              <option value="Physique">Physique</option>
-              <option value="Biologie">Biologie</option>
-              <option value="Anglais">Anglais</option>
-              <option value="Géographie">Géographie</option>
-              <option value="Philosophie">Philosophie</option>
-              <option value="OC">OC</option>
-              <option value="OS">OS</option>
-            </select>
+            <input type="text" id="subject" required placeholder="Tape le nom de la matière...">
           </div>
         </div>
         <div class="form-group">
