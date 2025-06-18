@@ -10,114 +10,104 @@
   <button id="toggleDark" style="position:absolute;top:16px;right:22px;font-size:1.2em;z-index:100;background:none;border:none;cursor:pointer;">
     🌙
   </button>
+
   <div id="toast"></div>
+
   <div class="container">
-  <div class="header">
-    <h1>📚 Fiches de Révision</h1>
-    <p class="subtitle">Partage de connaissances entre élèves</p>
-  </div>
-
-  <div class="nav">
-    <button class="nav-btn active" onclick="showSection('submit')">✏️ Créer une fiche</button>
-    <button class="nav-btn" id="pendingNavBtn" style="display:none;" onclick="showSection('pending')">⏳ En attente</button>
-    <a href="shared.html" class="nav-btn">🔗 Fiches partagées</a>
-  </div>
-
-  <div id="adminSection" class="admin-section">
-    <div id="loginAdminContainer" class="admin-login">
-      <input
-        type="password"
-        id="adminPassword"
-        placeholder="Mot de passe administrateur"
-      />
-      <button id="adminLoginBtn" class="btn btn-secondary">🔐 Connexion admin</button>
-      <button id="logoutAdminBtn" class="btn btn-danger" style="display:none;">🚪 Déconnexion</button>
+    <div class="header">
+      <h1>📚 Fiches de Révision</h1>
+      <p class="subtitle">Partage de connaissances entre élèves</p>
     </div>
-    <div id="loginMessage"></div>
-  </div>
 
-  <div id="submitSection" class="section active">
-    <div class="card">
-      <h2>✏️ Nouvelle fiche de révision</h2>
-      <form id="revisionForm">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="firstName" class="required">Prénom</label>
-            <input type="text" id="firstName" required>
+    <div class="nav">
+      <a href="index.html" class="btn btn-primary">✏️ Créer une fiche</a>
+      <button class="nav-btn" id="pendingNavBtn" style="display:none;" onclick="showSection('pending')">⏳ En attente</button>
+      <a href="shared.html" class="nav-btn">🔗 Fiches partagées</a>
+      <a href="admin.html" class="btn btn-secondary">🔐 Connexion admin</a>
+    </div>
+
+    <div id="submitSection" class="section active">
+      <div class="card">
+        <h2>✏️ Nouvelle fiche de révision</h2>
+        <form id="revisionForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="firstName" class="required">Prénom</label>
+              <input type="text" id="firstName" required>
+            </div>
+            <div class="form-group">
+              <label for="lastName" class="required">Nom</label>
+              <input type="text" id="lastName" required>
+            </div>
+            <div class="form-group">
+              <label for="email" class="required">Email</label>
+              <input type="email" id="email" required>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="pathway" class="required">Section</label>
+              <select id="pathway" required>
+                <option value="">Sélectionner une section</option>
+                <option value="BAC">BAC</option>
+                <option value="IB">IB</option>
+                <option value="Maturité">Maturité</option>
+                <option value="Cycle">Cycle</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="grade" class="required">Classe</label>
+              <select id="grade" required>
+                <option value="">Sélectionner une classe</option>
+                <option value="6ème">6ème</option>
+                <option value="5ème">5ème</option>
+                <option value="4ème">4ème</option>
+                <option value="3ème">3ème</option>
+                <option value="2nde">2nde</option>
+                <option value="1ère">1ère</option>
+                <option value="Terminale">Terminale</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="subject" class="required">Matière</label>
+              <input type="text" id="subject" required placeholder="Tape le nom de la matière...">
+            </div>
           </div>
           <div class="form-group">
-            <label for="lastName" class="required">Nom</label>
-            <input type="text" id="lastName" required>
+            <label for="chapter" class="required">Chapitre</label>
+            <input type="text" id="chapter" required placeholder="Ex: Les équations du second degré">
           </div>
           <div class="form-group">
-            <label for="email" class="required">Email</label>
-            <input type="email" id="email" required>
-          </div>
-        </div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="pathway" class="required">Section</label>
-            <select id="pathway" required>
-              <option value="">Sélectionner une section</option>
-              <option value="BAC">BAC</option>
-              <option value="IB">IB</option>
-              <option value="Maturité">Maturité</option>
-              <option value="Cycle">Cycle</option>
-            </select>
+            <label for="content" class="required">Contenu de la fiche</label>
+            <textarea id="content" required placeholder="Rédigez votre fiche de révision ici..."></textarea>
           </div>
           <div class="form-group">
-            <label for="grade" class="required">Classe</label>
-            <select id="grade" required>
-              <option value="">Sélectionner une classe</option>
-              <option value="6ème">6ème</option>
-              <option value="5ème">5ème</option>
-              <option value="4ème">4ème</option>
-              <option value="3ème">3ème</option>
-              <option value="2nde">2nde</option>
-              <option value="1ère">1ère</option>
-              <option value="Terminale">Terminale</option>
-            </select>
+            <label>Photos (optionnel)</label>
+            <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+              📸 Cliquer pour ajouter des photos ou faire glisser les fichiers ici
+            </div>
+            <input type="file" id="photoInput" multiple accept="image/*" style="display: none;">
+            <div id="photoPreview" class="photo-preview"></div>
           </div>
-          <div class="form-group">
-            <label for="subject" class="required">Matière</label>
-            <input type="text" id="subject" required placeholder="Tape le nom de la matière...">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="chapter" class="required">Chapitre</label>
-          <input type="text" id="chapter" required placeholder="Ex: Les équations du second degré">
-        </div>
-        <div class="form-group">
-          <label for="content" class="required">Contenu de la fiche</label>
-          <textarea id="content" required placeholder="Rédigez votre fiche de révision ici..."></textarea>
-        </div>
-        <div class="form-group">
-          <label>Photos (optionnel)</label>
-          <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
-            📸 Cliquer pour ajouter des photos ou faire glisser les fichiers ici
-          </div>
-          <input type="file" id="photoInput" multiple accept="image/*" style="display: none;">
-          <div id="photoPreview" class="photo-preview"></div>
-        </div>
-        <button type="submit" class="btn">📝 Soumettre la fiche</button>
-      </form>
-      <div id="submitMessage"></div>
+          <button type="submit" class="btn">📝 Soumettre la fiche</button>
+        </form>
+        <div id="submitMessage"></div>
+      </div>
+    </div>
+
+    <div id="pendingSection" class="section">
+      <div class="card">
+        <h2>⏳ Fiches en attente de validation</h2>
+        <div id="pendingContainer"></div>
+      </div>
     </div>
   </div>
 
-  <div id="pendingSection" class="section">
-    <div class="card">
-      <h2>⏳ Fiches en attente de validation</h2>
-      <div id="pendingContainer"></div>
-    </div>
+  <div id="imageModal" class="modal" onclick="closeModal()">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <img id="modalImage" src="" alt="Image agrandie">
   </div>
-</div>
 
-<div id="imageModal" class="modal" onclick="closeModal()">
-  <button class="modal-close" onclick="closeModal()">×</button>
-  <img id="modalImage" src="" alt="Image agrandie">
-</div>
-
-<script type="module" src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

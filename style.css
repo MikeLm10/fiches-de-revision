@@ -757,3 +757,307 @@ body.force-dark {
   color: #FFD600 !important;
   text-shadow: 0 0 8px #FFD60066;
 }
+
+body.force-dark .card {
+  background: rgba(35, 41, 53, 0.7);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.force-dark input,
+body.force-dark select,
+body.force-dark textarea {
+  background: #2c3344;
+  color: #f1f2f5;
+  border-color: #444d5a;
+}
+body.force-dark input::placeholder,
+body.force-dark textarea::placeholder {
+  color: #adb8cf;
+}
+body.force-dark label,
+body.force-dark .form-group label {
+  color: #e6e9f0;
+}
+body.force-dark select {
+  color: #f1f2f5;
+}
+
+body.force-dark h1,
+body.force-dark h2,
+body.force-dark .card h2,
+body.force-dark .header h1,
+body.force-dark label {
+  color: #d6e6ff;
+}
+
+body.force-dark {
+  background: linear-gradient(135deg, #19263a, #1a2d49, #26588b, #1a1c23 80%);
+  background-size: 400% 400%;
+  animation: gradientMoveDark 15s ease-in-out infinite;
+}
+@keyframes gradientMoveDark {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+body.force-dark .container {
+  background: transparent !important;
+}
+
+body.force-dark .photo-upload {
+  background: #2b3141;
+  border-color: #444d5a;
+  color: #d3d8e0;
+}
+body.force-dark .photo-upload:hover {
+  background: #343b50;
+  border-color: #7bb6ff;
+}
+
+body.force-dark .shared-sheet-card {
+  background: rgba(35, 41, 53, 0.7);
+  backdrop-filter: blur(8px);
+  color: #f1f2f5;
+  border-left-color: #7bb6ff;
+}
+body.force-dark .shared-sheet-title {
+  color: #d6e6ff;
+}
+body.force-dark .shared-sheet-meta {
+  color: #9ba8c3;
+}
+body.force-dark .shared-sheet-content {
+  background: #2c3344;
+  color: #f1f2f5;
+}
+
+body.force-dark .search-input,
+body.force-dark .filter-select {
+  background: #2c3344;
+  color: #f1f2f5;
+  border-color: #444d5a;
+}
+body.force-dark input[type="checkbox"] {
+  accent-color: #7bb6ff;
+}
+
+body.force-dark .nav-btn,
+body.force-dark .btn,
+body.force-dark .btn-secondary {
+  color: white !important;
+}
+body.force-dark .nav-btn {
+  background: none;
+  border: 2px solid var(--primary);
+}
+body.force-dark .nav-btn:hover,
+body.force-dark .nav-btn.active,
+body.force-dark .btn:hover,
+body.force-dark .btn-secondary:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white !important;
+}
+body.force-dark .btn-secondary {
+  background: none;
+  border: 2px solid var(--primary);
+}
+body.force-dark .btn-danger {
+  background: var(--secondary);
+  color: white;
+}
+body.force-dark .btn-danger:hover {
+  background: #c03d55;
+}
+
+.comment-section {
+  margin-top: 32px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.comment {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+#commentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#commentForm input,
+#commentForm textarea {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 1rem;
+  width: 100%;
+}
+
+body.force-dark #ficheModalContent {
+  background: #1f2633;
+  color: #f1f2f5;
+}
+
+body.force-dark .comment-section {
+  border-top: 1px solid #3a4355;
+}
+
+body.force-dark .comment input,
+body.force-dark .comment textarea {
+  background: #2c3344;
+  color: #f1f2f5;
+  border-color: #444d5a;
+}
+
+body.force-dark #ficheModalContent {
+  background: #1f2633;
+  color: #f1f2f5;
+}
+
+body.force-dark #ficheModalContent h2 {
+  color: #d6e6ff;
+}
+
+body.force-dark #ficheModalContent .btn {
+  background-color: var(--primary);
+  color: white;
+}
+
+body.force-dark #ficheModalContent .btn:hover {
+  background-color: #0051a0;
+}
+
+body.force-dark #ficheModalContent div[style*="background:#f3f4f6"] {
+  background: #2c3344 !important;
+  color: #f1f2f5 !important;
+}
+
+body.force-dark #ficheModalContent {
+  background: #1f2633 !important;
+  color: #f1f2f5;
+}
+
+body.force-dark #ficheModalContent h2 {
+  color: #d6e6ff;
+}
+
+body.force-dark #ficheModalContent div[style*="background:#f3f4f6"] {
+  background: #2c3344 !important;
+  color: #f1f2f5 !important;
+}
+
+body.force-dark .comment-section h3 {
+  color: #d6e6ff;
+}
+
+body.force-dark #commentForm input,
+body.force-dark #commentForm textarea {
+  background: #2c3344;
+  color: #f1f2f5;
+  border-color: #444d5a;
+}
+
+body.force-dark #commentForm button {
+  background-color: var(--primary);
+  color: white;
+}
+
+input,
+select,
+textarea,
+button,
+.card,
+.modal,
+.btn,
+.photo-upload,
+.shared-sheet-card,
+#ficheModalContent {
+  border-radius: 10px !important;
+}
+
+#adminSection input,
+#adminSection button {
+  border-radius: 10px;
+}
+
+#loginMessage {
+  margin-top: 12px;
+  text-align: center;
+  color: red;
+}
+
+.btn {
+  padding: 12px 22px;
+  font-size: 1.05rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #003b82;
+}
+
+.admin-input {
+  padding: 12px 16px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #f6f8fc;
+  width: 100%;
+}
+
+body.force-dark .admin-input {
+  background: #2c3344;
+  color: #f1f2f5;
+  border-color: #444d5a;
+}
+
+body.force-dark #loginMessage {
+  color: #ff7e7e;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:visited {
+  text-decoration: none;
+}
+
+.btn,
+.nav-btn {
+  text-decoration: none;
+}
+
+.nav-btn,
+.btn {
+  border-radius: 28px !important;
+}
+
+body.force-dark {
+  background: linear-gradient(135deg, #19263a, #1a2d49, #26588b, #1a1c23 80%);
+  background-size: 400% 400%;
+  animation: gradientMoveDark 15s ease-in-out infinite;
+  color: #f1f2f5;
+}
+
+body.force-dark input,
+body.force-dark .admin-input {
+  background: #2c3344;
+  color: #f1f2f5;
+  border-color: #444d5a;
+}
+
+body.force-dark h1 {
+  color: #d6e6ff;
+}
+

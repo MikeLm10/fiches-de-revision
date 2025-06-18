@@ -158,27 +158,92 @@ window.closeModal = function () {
   document.getElementById("imageModal").style.display = "none";
 };
 
+let currentFicheId = null;
+
 window.openFicheModal = function(sheet) {
   const modal = document.getElementById("ficheModal");
   const content = document.getElementById("ficheModalContent");
-  content.innerHTML = `
+  currentFicheId = sheet.id;
+
+  const ficheHtml = `
     <div style="padding:0 0 16px 0;">
       <h2 style="margin-bottom:12px;font-size:2rem;">${sheet.chapter}</h2>
       <div style="font-size:1.01rem;color:#666;margin-bottom:7px;">
-        <b>${sheet.firstName ? sheet.firstName : ''} ${sheet.lastName ? sheet.lastName : ''}</b>
-        • ${sheet.subject ? sheet.subject : ''} • ${sheet.grade ? sheet.grade : ''} • ${sheet.pathway ? sheet.pathway : ''}
+        <b>${sheet.firstName || ''} ${sheet.lastName || ''}</b>
+        • ${sheet.subject || ''} • ${sheet.grade || ''} • ${sheet.pathway || ''}
       </div>
       <div style="background:#f3f4f6;border-radius:10px;padding:18px 12px;font-size:1.08rem;margin-bottom:12px;">${(sheet.content || '').replace(/\n/g,"<br>")}</div>
       ${sheet.photos?.length ? `
-        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px;">${
-          sheet.photos.map(url=>`<img src="${url}" style="width:90px;height:90px;border-radius:7px;object-fit:cover;cursor:pointer;" onclick="window.open('${url}','_blank')" />`).join("")
-        }</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px;">
+          ${sheet.photos.map(url =>
+            `<img src="${url}" style="width:90px;height:90px;border-radius:7px;object-fit:cover;cursor:pointer;" onclick="window.open('${url}','_blank')" />`
+          ).join("")}
+        </div>
       ` : ""}
       <button class="btn btn-small" style="margin-top:12px;" onclick='exportFichePDF(${JSON.stringify(sheet).replace(/'/g,"\\'").replace(/"/g,"&quot;")});event.stopPropagation();'>📄 Télécharger en PDF</button>
     </div>
   `;
+
+  const ficheWrapper = document.createElement("div");
+  ficheWrapper.innerHTML = ficheHtml;
+  const commentsHtml = `
+  <div class="comment-section">
+    <h3>💬 Commentaires</h3>
+    <div id="commentsList"></div>
+    <form id="commentForm">
+      <input type="text" id="commentName" placeholder="Ton prénom ou pseudo..." required>
+      <textarea id="commentText" placeholder="Ton message..." required></textarea>
+      <button type="submit" class="btn btn-small">Envoyer</button>
+    </form>
+  </div>
+`;
+
+content.innerHTML = "";
+content.appendChild(ficheWrapper);
+content.insertAdjacentHTML("beforeend", commentsHtml);
   modal.style.display = "flex";
+  loadComments(sheet.id);
 };
+
+function loadComments(ficheId) {
+  const ficheRef = doc(db, "shared", ficheId);
+  getDoc(ficheRef).then(docSnap => {
+    const fiche = docSnap.data();
+    const comments = fiche.comments || [];
+    const commentsList = document.getElementById("commentsList");
+    commentsList.innerHTML = "";
+
+    if (comments.length === 0) {
+      commentsList.innerHTML = "<p>Aucun commentaire pour l’instant.</p>";
+    } else {
+      comments.forEach(c => {
+        const el = document.createElement("div");
+        el.className = "comment";
+        el.innerHTML = `<strong>${c.name}</strong> <span style="color:#888;font-size:0.9em;">(${c.date})</span><br>${c.message}`;
+        commentsList.appendChild(el);
+      });
+    }
+  });
+}
+
+document.addEventListener("submit", function(e) {
+  if (e.target.id === "commentForm") {
+    e.preventDefault();
+    const name = document.getElementById("commentName").value.trim();
+    const message = document.getElementById("commentText").value.trim();
+    if (!name || !message) return;
+    const date = new Date().toLocaleString("fr-FR");
+    const newComment = { name, message, date };
+    const ficheRef = doc(db, "shared", currentFicheId);
+    updateDoc(ficheRef, {
+      comments: arrayUnion(newComment)
+    }).then(() => {
+      document.getElementById("commentForm").reset();
+      loadComments(currentFicheId);
+    });
+  }
+});
+
 
 window.closeFicheModal = function() {
   document.getElementById("ficheModal").style.display = "none";
@@ -211,6 +276,27 @@ window.exportFichePDF = function(sheet) {
   `);
   win.document.close();
 }
+
+document.getElementById("toggleDark").addEventListener("click", () => {
+  document.body.classList.toggle("force-dark");
+  document.body.classList.toggle("force-light");
+
+  const isDark = document.body.classList.contains("force-dark");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+
+  document.getElementById("toggleDark").textContent = isDark ? "☀️" : "🌙";
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+  const theme = localStorage.getItem("theme");
+  if (theme === "dark") {
+    document.body.classList.add("force-dark");
+    document.getElementById("toggleDark").textContent = "☀️";
+  } else if (theme === "light") {
+    document.body.classList.add("force-light");
+    document.getElementById("toggleDark").textContent = "🌙";
+  }
+});
 
 
 searchInput.addEventListener("input", filterAndSortSheets);

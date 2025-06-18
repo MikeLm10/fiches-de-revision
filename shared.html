@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <button id="toggleDark" style="position:absolute;top:16px;right:22px;font-size:1.2em;z-index:100;background:none;border:none;cursor:pointer;">
+    🌙
+  </button>
+<body>
 <div class="container">
   <div class="header">
     <h1>🔗 Fiches partagées</h1>
@@ -39,9 +43,23 @@
 
 <div id="ficheModal" class="modal" style="display:none;" onclick="closeFicheModal()">
   <button class="modal-close" onclick="closeFicheModal();event.stopPropagation();">×</button>
-  <div id="ficheModalContent" style="max-width:650px;width:96vw;background:white;border-radius:14px;box-shadow:0 4px 22px #00306b30;padding:28px;margin:auto;position:relative;" onclick="event.stopPropagation()">
+
+  <div id="ficheModalContent"
+    style="max-width:650px;width:96vw;background:white;border-radius:14px;box-shadow:0 4px 22px #00306b30;padding:28px;margin:auto;position:relative;"
+    onclick="event.stopPropagation()">
+    <div class="comment-section">
+      <h3 style="margin-bottom:14px;">💬 Commentaires</h3>
+      <div id="commentsList"></div>
+      <form id="commentForm" style="margin-top:20px;">
+        <input type="text" id="commentName" placeholder="Ton prénom ou pseudo..." required>
+        <textarea id="commentText" placeholder="Ton message..." required></textarea>
+        <button type="submit" class="btn btn-small" style="margin-top:8px;">Envoyer</button>
+      </form>
+    </div>
+
   </div>
 </div>
+
 
 <div id="imageModal" class="modal" onclick="closeModal()">
   <button class="modal-close" onclick="closeModal()">×</button>

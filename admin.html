@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion Admin</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <button id="toggleDark" style="position:absolute;top:16px;right:22px;font-size:1.2em;z-index:100;background:none;border:none;cursor:pointer;">
+    🌙
+  </button>
+
+  <div class="container" style="margin-top: 100px; max-width: 400px;">
+    <div class="nav" style="margin-bottom: 40px;">
+      <a href="index.html" class="nav-btn">← Retour</a>
+    </div>
+
+    <h1 style="margin-bottom: 24px;">🔐 Connexion admin</h1>
+
+    <input
+      type="password"
+      id="adminPassword"
+      class="admin-input"
+      placeholder="🔑 Mot de passe administrateur"
+    />
+    <button
+      id="adminLoginBtn"
+      class="btn btn-secondary"
+      style="margin-top: 14px;"
+    >
+      Connexion
+    </button>
+
+    <div id="loginMessage" style="margin-top: 12px; color: red;"></div>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+
+  <script>
+    const toggle = document.getElementById("toggleDark");
+    if (localStorage.getItem("dark") === "true") {
+      document.body.classList.add("force-dark");
+      toggle.textContent = "☀️";
+    }
+    toggle.addEventListener("click", () => {
+      document.body.classList.toggle("force-dark");
+      const isDark = document.body.classList.contains("force-dark");
+      localStorage.setItem("dark", isDark);
+      toggle.textContent = isDark ? "☀️" : "🌙";
+    });
+  </script>
+</body>
+</html>

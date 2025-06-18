@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panneau Admin</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <button id="toggleDark" style="position:absolute;top:16px;right:22px;font-size:1.2em;z-index:100;background:none;border:none;cursor:pointer;">🌙</button>
+
+  <div class="container" style="margin-top: 80px;">
+    <div class="nav" style="margin-bottom: 32px;">
+      <a href="index.html" class="nav-btn">← Retour</a>
+    </div>
+
+    <h1>🛠️ Administration</h1>
+    <p class="subtitle">Gérer toutes les fiches partagées et en attente</p>
+
+    <h2 style="margin-top:40px;">📤 Fiches en attente</h2>
+    <section id="pendingFiches" class="admin-list"></section>
+
+    <h2 style="margin-top:60px;">✅ Fiches validées</h2>
+    <section id="sharedFiches" class="admin-list"></section>
+  </div>
+
+  <script type="module" src="admin-panel.js"></script>
+
+  <script>
+    const toggle = document.getElementById("toggleDark");
+    if (localStorage.getItem("dark") === "true") {
+      document.body.classList.add("force-dark");
+      toggle.textContent = "☀️";
+    }
+    toggle.addEventListener("click", () => {
+      document.body.classList.toggle("force-dark");
+      const isDark = document.body.classList.contains("force-dark");
+      localStorage.setItem("dark", isDark);
+      toggle.textContent = isDark ? "☀️" : "🌙";
+    });
+  </script>
+</body>
+</html>
