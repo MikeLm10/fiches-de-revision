@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fiches-revision-florimont.netlify.app/sitemap.xml
