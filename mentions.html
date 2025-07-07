@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mentions légales</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .mentions-container {
+      max-width: 750px;
+      margin: 100px auto 40px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+    .mentions-container h1 {
+      font-size: 1.8rem;
+      margin-bottom: 24px;
+    }
+    .mentions-container h2 {
+      margin-top: 32px;
+      font-size: 1.3rem;
+    }
+    .mentions-container a {
+      color: #004085;
+    }
+    body.force-dark {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    body.force-dark a {
+      color: #80bfff;
+    }
+  </style>
+</head>
+<body>
+  <button id="toggleDark" style="position:absolute;top:16px;right:22px;font-size:1.2em;z-index:100;background:none;border:none;cursor:pointer;">
+    🌙
+  </button>
+
+  <div class="mentions-container">
+    <h1>📄 Mentions légales et charte d’utilisation</h1>
+
+    <p>
+      Ce site est une plateforme interne destinée aux élèves de l’établissement Florimont.
+      Les utilisateurs peuvent y soumettre, consulter et commenter des fiches de révision.
+    </p>
+
+    <h2>🔐 Données</h2>
+    <p>
+      Aucune donnée personnelle n’est stockée en dehors de l’adresse email locale
+      utilisée pour identifier l’auteur d’une fiche ou un like. Les commentaires sont
+      publics. Aucune authentification via mot de passe n’est requise pour les élèves.
+    </p>
+
+    <h2>🛡️ Modération</h2>
+    <p>
+      Toutes les fiches sont lues et validées manuellement par un administrateur avant publication.
+      Les propos inappropriés, discriminatoires, violents ou contraires aux règles de l’établissement
+      sont supprimés sans avertissement.
+    </p>
+
+    <h2>📮 Contact</h2>
+    <p>
+      Pour toute question ou signalement, vous pouvez envoyer un email à :
+      <a href="mailto:michalis.kiourkos@gmail.com">michalis.kiourkos@gmail.com</a>
+    </p>
+
+    <p style="margin-top:30px;"><a href="index.html">← Retour à l’accueil</a></p>
+  </div>
+
+  <script>
+    const toggle = document.getElementById("toggleDark");
+    if (localStorage.getItem("dark") === "true") {
+      document.body.classList.add("force-dark");
+      toggle.textContent = "☀️";
+    }
+    toggle.addEventListener("click", () => {
+      document.body.classList.toggle("force-dark");
+      const isDark = document.body.classList.contains("force-dark");
+      localStorage.setItem("dark", isDark);
+      toggle.textContent = isDark ? "☀️" : "🌙";
+    });
+  </script>
+</body>
+</html>

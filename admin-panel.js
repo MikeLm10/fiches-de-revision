@@ -12,26 +12,29 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
-    authDomain: "fiches-florimont.firebaseapp.com",
-    projectId: "fiches-florimont",
-    storageBucket: "fiches-florimont.appspot.com",
-    messagingSenderId: "861008333499",
-    appId: "1:861008333499:web:57bb7a0ec07b820164b47de",
-    measurementId: "G-WDQ8BMJ5W5"
-  };
+  apiKey: "AIzaSyDFVYs8ndP38wcdJ0419d7ToTWmectToE",
+  authDomain: "fiches-florimont.firebaseapp.com",
+  projectId: "fiches-florimont",
+  storageBucket: "fiches-florimont.appspot.com",
+  messagingSenderId: "861008333499",
+  appId: "1:861008333499:web:57bb7a0ec07b820164b47de",
+  measurementId: "G-WDQ8BMJ5W5"
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const pendingSection = document.getElementById("pendingFiches");
 const sharedSection = document.getElementById("sharedFiches");
+const pendingCount = document.getElementById("pendingFicheCount");
+const sharedCount = document.getElementById("sharedFicheCount");
 
 async function loadFiches() {
-  // Fiches en attente
   const pendingQuery = query(collection(db, "fiches"), where("status", "==", "pending"));
   const pendingSnap = await getDocs(pendingQuery);
   pendingSection.innerHTML = "";
+  let pendingTotal = 0;
+
   if (pendingSnap.empty) {
     pendingSection.innerHTML = "<p style='color:#555;'>Aucune fiche en attente.</p>";
   } else {
@@ -40,13 +43,19 @@ async function loadFiches() {
       const id = docSnap.id;
       const el = createFicheCard(fiche, id, "pending");
       pendingSection.appendChild(el);
+      pendingTotal++;
     });
   }
 
-  // Fiches validées
+  if (pendingCount) {
+    pendingCount.textContent = `📊 ${pendingTotal} fiche${pendingTotal > 1 ? "s" : ""} en attente`;
+  }
+
   const sharedQuery = query(collection(db, "shared"));
   const sharedSnap = await getDocs(sharedQuery);
   sharedSection.innerHTML = "";
+  let sharedTotal = 0;
+
   if (sharedSnap.empty) {
     sharedSection.innerHTML = "<p style='color:#555;'>Aucune fiche partagée.</p>";
   } else {
@@ -55,7 +64,12 @@ async function loadFiches() {
       const id = docSnap.id;
       const el = createFicheCard(fiche, id, "shared");
       sharedSection.appendChild(el);
+      sharedTotal++;
     });
+  }
+
+  if (sharedCount) {
+    sharedCount.textContent = `📊 ${sharedTotal} fiche${sharedTotal > 1 ? "s" : ""} validée${sharedTotal > 1 ? "s" : ""}`;
   }
 }
 
@@ -103,7 +117,11 @@ window.validateFiche = async function(id) {
   const fiche = ficheSnap.docs[0].data();
   const sharedRef = doc(db, "shared", id);
 
-  await updateDoc(sharedRef, { ...fiche, status: "validated" });
+  await updateDoc(sharedRef, {
+    ...fiche,
+    status: "validated",
+    validatedAt: new Date().toISOString()
+  });
   await deleteDoc(docRef);
 
   loadFiches();
@@ -125,3 +143,34 @@ window.removeComment = async function(ficheId, commentObj) {
 };
 
 loadFiches();
+
+import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+onSnapshot(
+  query(collection(db, "fiches"), where("status", "==", "pending")),
+  snapshot => {
+    if (!snapshot.empty) {
+      showToast(`📥 Nouvelle fiche soumise !`);
+    }
+  }
+);
+
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #00306b;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 1000;
+    font-size: 1rem;
+    animation: fadein 0.5s, fadeout 0.5s 3s;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}

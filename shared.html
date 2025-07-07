@@ -10,64 +10,93 @@
   <button id="toggleDark" style="position:absolute;top:16px;right:22px;font-size:1.2em;z-index:100;background:none;border:none;cursor:pointer;">
     🌙
   </button>
-<body>
-<div class="container">
-  <div class="header">
-    <h1>🔗 Fiches partagées</h1>
-    <p class="subtitle">Recherchez, triez et explorez les fiches validées</p>
-  </div>
 
-  <div class="nav">
-    <a href="index.html" class="nav-btn">← Retour</a>
-  </div>
-
-  <div class="search-filters">
-    <input type="text" id="sharedSearchInput" class="search-input" placeholder="🔍 Rechercher dans les fiches partagées...">
-    <select id="sharedSortSelect" class="filter-select">
-      <option value="none">Aucun filtre</option>
-      <option value="recent">📅 Plus récentes</option>
-      <option value="oldest">📅 Plus anciennes</option>
-      <option value="subject">📚 Par matière</option>
-      <option value="pathway">🎓 Par section</option>
-    </select>
-    
-  </div>
-
-  <label style="font-size:1.11rem;cursor:pointer;">
-    <input type="checkbox" id="showOnlyFavs" style="vertical-align:middle;margin-right:4px;">
-    ⭐ Uniquement mes favoris
-  </label>
-
-  <section id="sharedContainer"></section>
-</div>
-
-<div id="ficheModal" class="modal" style="display:none;" onclick="closeFicheModal()">
-  <button class="modal-close" onclick="closeFicheModal();event.stopPropagation();">×</button>
-
-  <div id="ficheModalContent"
-    style="max-width:650px;width:96vw;background:white;border-radius:14px;box-shadow:0 4px 22px #00306b30;padding:28px;margin:auto;position:relative;"
-    onclick="event.stopPropagation()">
-    <div class="comment-section">
-      <h3 style="margin-bottom:14px;">💬 Commentaires</h3>
-      <div id="commentsList"></div>
-      <form id="commentForm" style="margin-top:20px;">
-        <input type="text" id="commentName" placeholder="Ton prénom ou pseudo..." required>
-        <textarea id="commentText" placeholder="Ton message..." required></textarea>
-        <button type="submit" class="btn btn-small" style="margin-top:8px;">Envoyer</button>
-      </form>
+  <div class="container">
+    <div class="header">
+      <h1>🔗 Fiches partagées</h1>
+      <p class="subtitle">Recherchez, triez et explorez les fiches validées</p>
     </div>
 
+    <div class="nav">
+      <a href="index.html" class="nav-btn">← Retour</a>
+      <a href="mentions.html" class="nav-btn">📄 Mentions légales</a>
+    </div>
+
+    <div class="search-filters">
+      <input type="text" id="sharedSearchInput" class="search-input" placeholder="🔍 Rechercher par mot-clé...">
+      <select id="filterSubject" class="filter-select">
+        <option value="">📚 Toutes les matières</option>
+        <option value="Maths">Maths</option>
+        <option value="Physique">Physique</option>
+        <option value="Chimie">Chimie</option>
+        <option value="Histoire">Histoire</option>
+        <!-- autres matières -->
+      </select>
+      <select id="filterPathway" class="filter-select">
+        <option value="">🎓 Toutes les sections</option>
+        <option value="Maturité">Maturité</option>
+        <option value="IB">IB</option>
+        <option value="BAC">BAC</option>
+        <option value="Cycle">Cycle</option>
+      </select>
+      <select id="filterGrade" class="filter-select">
+        <option value="">🎒 Toutes les classes</option>
+        <option value="6ème">6ème</option>
+        <option value="5ème">5ème</option>
+        <option value="4ème">4ème</option>
+        <option value="3ème">3ème</option>
+        <option value="2nde">2nde</option>
+        <option value="1ère">1ère</option>
+        <option value="Terminale">Terminale</option>
+      </select>
+    </div>
+
+    <label style="font-size:1.11rem;cursor:pointer;">
+      <input type="checkbox" id="showOnlyFavs" style="vertical-align:middle;margin-right:4px;">
+      ⭐ Uniquement mes favoris
+    </label>
+
+    <section id="sharedContainer"></section>
+
+    <p style="margin-top:30px; font-size:0.95rem; color:#666;">
+      🛡️ Les fiches sont publiées <strong>après validation manuelle par un administrateur</strong>.
+    </p>
+
+    <p style="margin-top:12px; font-size:0.9rem;">
+      💡 <a href="mailto:ton@email.com?subject=Problème%20sur%20la%20plateforme" style="color:#004085;">
+        Signaler un problème
+      </a>
+    </p>
   </div>
-</div>
 
+  <div id="ficheModal" class="modal" style="display:none;" onclick="closeFicheModal()">
+    <button class="modal-close" onclick="closeFicheModal();event.stopPropagation();">×</button>
+    <div id="ficheModalContent"
+      style="max-width:650px;width:96vw;background:white;border-radius:14px;box-shadow:0 4px 22px #00306b30;padding:28px;margin:auto;position:relative;"
+      onclick="event.stopPropagation()">
+      <div class="comment-section">
+        <h3 style="margin-bottom:14px;">💬 Commentaires</h3>
+        <div id="commentsList"></div>
+        <form id="commentForm" style="margin-top:20px;">
+          <input type="text" id="commentName" placeholder="Ton prénom ou pseudo..." required>
+          <textarea id="commentText" placeholder="Ton message..." required></textarea>
+          <button type="submit" class="btn btn-small" style="margin-top:8px;">Envoyer</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
-<div id="imageModal" class="modal" onclick="closeModal()">
-  <button class="modal-close" onclick="closeModal()">×</button>
-  <img id="modalImage" src="" alt="Image agrandie">
-</div>
+  <div id="imageModal" class="modal" onclick="closeModal()">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <img id="modalImage" src="" alt="Image agrandie">
+  </div>
 
-<div id="toast"></div>
+  <div id="toast"></div>
 
-<script type="module" src="shared.js"></script>
+  <script type="module" src="shared.js"></script>
+  <script type="module">
+    import { initDarkMode } from './theme.js';
+    initDarkMode();
+  </script>
 </body>
 </html>

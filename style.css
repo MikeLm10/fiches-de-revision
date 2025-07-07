@@ -760,7 +760,6 @@ body.force-dark {
 
 body.force-dark .card {
   background: rgba(35, 41, 53, 0.7);
-  backdrop-filter: blur(8px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -1061,3 +1060,99 @@ body.force-dark h1 {
   color: #d6e6ff;
 }
 
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .shared-sheet-meta {
+    font-size: 0.95rem;
+    flex-wrap: wrap;
+  }
+
+  .shared-sheet-title {
+    font-size: 1.2rem;
+  }
+
+  .btn,
+  .btn-small {
+    font-size: 0.95rem;
+    padding: 10px 14px;
+  }
+
+  .photo-preview img,
+  .shared-sheet-photos img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .search-filters {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .search-input,
+  .filter-select {
+    width: 100% !important;
+  }
+
+  .comment-section textarea {
+    font-size: 1rem;
+    width: 100%;
+  }
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(35, 41, 53, 0.6); /* teinte foncée */
+  backdrop-filter: blur(8px);
+  z-index: 0;
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  padding: 24px;
+  background: transparent; /* on enlève le background ici */
+  z-index: 0;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(35, 41, 53, 0.7); /* opacité ajustée */
+  backdrop-filter: blur(10px);
+  z-index: -1;
+  border-radius: 12px;
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}

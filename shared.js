@@ -3,7 +3,11 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
+  doc,
+  updateDoc,
+  getDoc,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 
@@ -22,11 +26,13 @@ const db = getFirestore(app);
 
 const container = document.getElementById("sharedContainer");
 const searchInput = document.getElementById("sharedSearchInput");
-const sortSelect = document.getElementById("sharedSortSelect");
+const filterSubject = document.getElementById("filterSubject");
+const filterPathway = document.getElementById("filterPathway");
+const filterGrade = document.getElementById("filterGrade");
 const showOnlyFavs = document.getElementById("showOnlyFavs");
-if(showOnlyFavs) showOnlyFavs.addEventListener("change", filterAndSortSheets);
 
 let approvedSheets = [];
+let currentFicheId = null;
 
 function getFavorites() {
   return JSON.parse(localStorage.getItem("favorites") || "[]");
@@ -53,10 +59,36 @@ async function loadApprovedSheets() {
   filterAndSortSheets();
 }
 
+function filterAndSortSheets() {
+  const searchValue = searchInput.value.trim().toLowerCase();
+  const onlyFav = showOnlyFavs && showOnlyFavs.checked;
+  const subject = filterSubject?.value || "";
+  const pathway = filterPathway?.value || "";
+  const grade = filterGrade?.value || "";
+
+  let filtered = approvedSheets.filter(sheet => {
+    const textMatch =
+      (sheet.subject || '').toLowerCase().includes(searchValue) ||
+      (sheet.chapter || '').toLowerCase().includes(searchValue) ||
+      (sheet.content || '').toLowerCase().includes(searchValue) ||
+      (sheet.firstName || '').toLowerCase().includes(searchValue) ||
+      (sheet.lastName || '').toLowerCase().includes(searchValue) ||
+      (sheet.grade || '').toLowerCase().includes(searchValue) ||
+      (sheet.pathway || '').toLowerCase().includes(searchValue);
+    const favMatch = !onlyFav || isFavorite(sheet.id);
+    const subjectMatch = !subject || sheet.subject === subject;
+    const pathwayMatch = !pathway || sheet.pathway === pathway;
+    const gradeMatch = !grade || sheet.grade === grade;
+    return textMatch && favMatch && subjectMatch && pathwayMatch && gradeMatch;
+  });
+
+  displaySheets(filtered);
+}
+
 function displaySheets(sheets) {
   container.innerHTML = "";
   if (sheets.length === 0) {
-    container.innerHTML = `<p class="empty-state">Aucune fiche disponible.</p>`;
+    container.innerHTML = `<p class="empty-state">Aucune fiche ne correspond aux filtres.</p>`;
     return;
   }
 
@@ -72,15 +104,15 @@ function displaySheets(sheets) {
         </button>
       </div>
       <div class="shared-sheet-meta">
-        ${sheet.firstName ? sheet.firstName : ''} ${sheet.lastName ? sheet.lastName : ''} • 
-        ${sheet.subject ? sheet.subject : ''} • 
-        ${sheet.grade ? sheet.grade : ''} • 
-        ${sheet.pathway ? sheet.pathway : ''}
+        ${sheet.firstName || ''} ${sheet.lastName || ''} • 
+        ${sheet.subject || ''} • 
+        ${sheet.grade || ''} • 
+        ${sheet.pathway || ''}
       </div>
       <div class="shared-sheet-content">${(sheet.content || '').replace(/\n/g,"<br>")}</div>
       ${sheet.photos?.length ? renderPhotos(sheet.photos) : ""}
     `;
-    div.onclick = () => openFicheModal(sheet); 
+    div.onclick = () => openFicheModal(sheet);
     container.appendChild(div);
   });
 
@@ -98,10 +130,9 @@ function displaySheets(sheets) {
       toggleFavorite(id);
       btn.style.color = isFavorite(id) ? "#FFD600" : "#BBB";
       btn.title = isFavorite(id) ? "Retirer des favoris" : "Ajouter aux favoris";
-    }
+    };
   });
 }
-
 
 function renderPhotos(photos) {
   return `
@@ -110,42 +141,6 @@ function renderPhotos(photos) {
     </div>
   `;
 }
-
-function filterAndSortSheets() {
-  const searchValue = searchInput.value.trim().toLowerCase();
-  const onlyFav = showOnlyFavs && showOnlyFavs.checked;
-
-  let filtered = approvedSheets;
-
-  if (onlyFav) {
-    const favs = getFavorites();
-    filtered = filtered.filter(sheet => favs.includes(sheet.id));
-  }
-
-  if (searchValue) {
-    filtered = filtered.filter(sheet =>
-      (sheet.subject || '').toLowerCase().includes(searchValue) ||
-      (sheet.chapter || '').toLowerCase().includes(searchValue) ||
-      (sheet.firstName || '').toLowerCase().includes(searchValue) ||
-      (sheet.lastName || '').toLowerCase().includes(searchValue)
-    );
-  }
-
-  const sort = sortSelect.value;
-  if (sort === "recent") {
-    filtered.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-  } else if (sort === "oldest") {
-    filtered.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-  } else if (sort === "subject") {
-    filtered.sort((a, b) => (a.subject || "").localeCompare(b.subject || ""));
-  } else if (sort === "pathway") {
-    filtered.sort((a, b) => (a.pathway || "").localeCompare(b.pathway || ""));
-  }
-
-  displaySheets(filtered);
-}
-
-
 
 window.openModal = function (src) {
   const modal = document.getElementById("imageModal");
@@ -157,8 +152,6 @@ window.openModal = function (src) {
 window.closeModal = function () {
   document.getElementById("imageModal").style.display = "none";
 };
-
-let currentFicheId = null;
 
 window.openFicheModal = function(sheet) {
   const modal = document.getElementById("ficheModal");
@@ -180,7 +173,7 @@ window.openFicheModal = function(sheet) {
           ).join("")}
         </div>
       ` : ""}
-      <button class="btn btn-small" style="margin-top:12px;" onclick='exportFichePDF(${JSON.stringify(sheet).replace(/'/g,"\\'").replace(/"/g,"&quot;")});event.stopPropagation();'>📄 Télécharger en PDF</button>
+      <button class="btn btn-small" style="margin-top:12px;" onclick='exportFichePDF(${JSON.stringify(sheet).replace(/'/g,"\'").replace(/"/g,"&quot;")});event.stopPropagation();'>📄 Télécharger en PDF</button>
     </div>
   `;
 
@@ -198,9 +191,9 @@ window.openFicheModal = function(sheet) {
   </div>
 `;
 
-content.innerHTML = "";
-content.appendChild(ficheWrapper);
-content.insertAdjacentHTML("beforeend", commentsHtml);
+  content.innerHTML = "";
+  content.appendChild(ficheWrapper);
+  content.insertAdjacentHTML("beforeend", commentsHtml);
   modal.style.display = "flex";
   loadComments(sheet.id);
 };
@@ -244,7 +237,6 @@ document.addEventListener("submit", function(e) {
   }
 });
 
-
 window.closeFicheModal = function() {
   document.getElementById("ficheModal").style.display = "none";
 };
@@ -256,11 +248,11 @@ window.exportFichePDF = function(sheet) {
     <head>
       <title>${sheet.chapter}</title>
       <style>
-        body { font-family: Arial,sans-serif; padding:30px;}
-        h1 { color:#002f6c; border-bottom:2px solid #002f6c; padding-bottom:10px;}
-        .meta { font-size:1.1em; margin-bottom:18px;}
-        .content { background:#f3f4f6; padding:18px; border-radius:8px; font-size:1.13em;}
-        img { max-width:100%; margin-top:16px; border-radius:10px;}
+        body { font-family: Arial,sans-serif; padding:30px; }
+        h1 { color:#002f6c; border-bottom:2px solid #002f6c; padding-bottom:10px; }
+        .meta { font-size:1.1em; margin-bottom:18px; }
+        .content { background:#f3f4f6; padding:18px; border-radius:8px; font-size:1.13em; }
+        img { max-width:100%; margin-top:16px; border-radius:10px; }
       </style>
     </head>
     <body>
@@ -275,31 +267,12 @@ window.exportFichePDF = function(sheet) {
     </body></html>
   `);
   win.document.close();
-}
-
-document.getElementById("toggleDark").addEventListener("click", () => {
-  document.body.classList.toggle("force-dark");
-  document.body.classList.toggle("force-light");
-
-  const isDark = document.body.classList.contains("force-dark");
-  localStorage.setItem("theme", isDark ? "dark" : "light");
-
-  document.getElementById("toggleDark").textContent = isDark ? "☀️" : "🌙";
-});
-
-window.addEventListener("DOMContentLoaded", () => {
-  const theme = localStorage.getItem("theme");
-  if (theme === "dark") {
-    document.body.classList.add("force-dark");
-    document.getElementById("toggleDark").textContent = "☀️";
-  } else if (theme === "light") {
-    document.body.classList.add("force-light");
-    document.getElementById("toggleDark").textContent = "🌙";
-  }
-});
-
+};
 
 searchInput.addEventListener("input", filterAndSortSheets);
-sortSelect.addEventListener("change", filterAndSortSheets);
+filterSubject?.addEventListener("change", filterAndSortSheets);
+filterPathway?.addEventListener("change", filterAndSortSheets);
+filterGrade?.addEventListener("change", filterAndSortSheets);
+showOnlyFavs?.addEventListener("change", filterAndSortSheets);
 
 loadApprovedSheets();

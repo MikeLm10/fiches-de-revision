@@ -36,19 +36,9 @@
   </div>
 
   <script type="module" src="admin.js"></script>
-
-  <script>
-    const toggle = document.getElementById("toggleDark");
-    if (localStorage.getItem("dark") === "true") {
-      document.body.classList.add("force-dark");
-      toggle.textContent = "☀️";
-    }
-    toggle.addEventListener("click", () => {
-      document.body.classList.toggle("force-dark");
-      const isDark = document.body.classList.contains("force-dark");
-      localStorage.setItem("dark", isDark);
-      toggle.textContent = isDark ? "☀️" : "🌙";
-    });
+  <script type="module">
+    import { initDarkMode } from './theme.js';
+    initDarkMode();
   </script>
 </body>
 </html>

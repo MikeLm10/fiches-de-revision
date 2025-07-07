@@ -18,9 +18,15 @@
     <p class="subtitle">Gérer toutes les fiches partagées et en attente</p>
 
     <h2 style="margin-top:40px;">📤 Fiches en attente</h2>
+    <div id="pendingFicheCount" style="margin: 12px 0; font-size: 1rem; color: #ffff;">
+      📊 0 fiche en attente
+    </div>
     <section id="pendingFiches" class="admin-list"></section>
 
     <h2 style="margin-top:60px;">✅ Fiches validées</h2>
+    <div id="sharedFicheCount" style="margin: 12px 0; font-size: 1rem; color: #ffff;">
+      📊 0 fiche validée
+    </div>
     <section id="sharedFiches" class="admin-list"></section>
   </div>
 
@@ -38,6 +44,11 @@
       localStorage.setItem("dark", isDark);
       toggle.textContent = isDark ? "☀️" : "🌙";
     });
+  </script>
+
+  <script type="module">
+    import { initDarkMode } from './theme.js';
+    initDarkMode();
   </script>
 </body>
 </html>
