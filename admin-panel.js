@@ -8,7 +8,9 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  arrayRemove
+  setDoc,
+  arrayRemove,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -30,8 +32,7 @@ const pendingCount = document.getElementById("pendingFicheCount");
 const sharedCount = document.getElementById("sharedFicheCount");
 
 async function loadFiches() {
-  const pendingQuery = query(collection(db, "fiches"), where("status", "==", "pending"));
-  const pendingSnap = await getDocs(pendingQuery);
+  const pendingSnap = await getDocs(query(collection(db, "fiches"), where("status", "==", "pending")));
   pendingSection.innerHTML = "";
   let pendingTotal = 0;
 
@@ -51,8 +52,7 @@ async function loadFiches() {
     pendingCount.textContent = `📊 ${pendingTotal} fiche${pendingTotal > 1 ? "s" : ""} en attente`;
   }
 
-  const sharedQuery = query(collection(db, "shared"));
-  const sharedSnap = await getDocs(sharedQuery);
+  const sharedSnap = await getDocs(collection(db, "shared"));
   sharedSection.innerHTML = "";
   let sharedTotal = 0;
 
@@ -110,41 +110,46 @@ function createFicheCard(fiche, id, type) {
 }
 
 window.validateFiche = async function(id) {
-  const docRef = doc(db, "fiches", id);
+  console.log("✅ Validation demandée pour la fiche :", id);
+  const ficheRef = doc(db, "fiches", id);
   const ficheSnap = await getDocs(query(collection(db, "fiches"), where("__name__", "==", id)));
-  if (ficheSnap.empty) return;
+
+  if (ficheSnap.empty) {
+    console.error("Fiche introuvable dans 'fiches'");
+    return;
+  }
 
   const fiche = ficheSnap.docs[0].data();
   const sharedRef = doc(db, "shared", id);
 
-  await updateDoc(sharedRef, {
+  await setDoc(sharedRef, {
     ...fiche,
     status: "validated",
     validatedAt: new Date().toISOString()
   });
-  await deleteDoc(docRef);
 
+  await deleteDoc(ficheRef);
+  showToast("✅ Fiche validée !");
   loadFiches();
 };
 
 window.deleteFiche = async function(id, col) {
   if (confirm("Supprimer cette fiche ?")) {
     await deleteDoc(doc(db, col, id));
+    showToast("🗑️ Fiche supprimée.");
     loadFiches();
   }
 };
 
 window.removeComment = async function(ficheId, commentObj) {
-  const ref = doc(db, "shared", ficheId);
-  await updateDoc(ref, {
+  await updateDoc(doc(db, "shared", ficheId), {
     comments: arrayRemove(commentObj)
   });
+  showToast("💬 Commentaire supprimé.");
   loadFiches();
 };
 
 loadFiches();
-
-import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 onSnapshot(
   query(collection(db, "fiches"), where("status", "==", "pending")),

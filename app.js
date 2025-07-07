@@ -115,41 +115,39 @@ window.closeModal = closeModal;
 function createPhotoPreview(files) {
   const preview = document.getElementById('photoPreview');
   if (!preview) return;
+  currentFiles = Array.from(files);
   preview.innerHTML = "";
-  Array.from(files).forEach((file, idx) => {
+  currentFiles.forEach((file, index) => {
     if (!file.type.startsWith("image/")) return;
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       const div = document.createElement('div');
       div.className = "photo-item";
       div.innerHTML = `
         <img src="${e.target.result}" alt="Preview" style="cursor:pointer;">
-        <button class="photo-remove" data-index="${idx}">&times;</button>
+        <button class="photo-remove" data-index="${index}">&times;</button>
       `;
-      div.querySelector('img').onclick = function(ev) {
+      div.querySelector('img').onclick = function (ev) {
         ev.stopPropagation();
         document.getElementById('modalImage').src = e.target.result;
         document.getElementById('imageModal').style.display = 'flex';
       };
-      div.querySelector('.photo-remove').onclick = function(ev) {
+      div.querySelector('.photo-remove').onclick = function (ev) {
         ev.stopPropagation();
-        removePhotoAtIndex(idx);
+        removePhotoAtIndex(index);
       };
       preview.appendChild(div);
     };
     reader.readAsDataURL(file);
   });
+  const dt = new DataTransfer();
+  currentFiles.forEach(f => dt.items.add(f));
+  document.getElementById('photoInput').files = dt.files;
 }
 
-function removePhotoAtIndex(idx) {
-  const input = document.getElementById('photoInput');
-  const dt = new DataTransfer();
-  const files = input.files;
-  for(let i=0; i<files.length; i++){
-    if(i !== idx) dt.items.add(files[i]);
-  }
-  input.files = dt.files;
-  createPhotoPreview(dt.files);
+function removePhotoAtIndex(indexToRemove) {
+  currentFiles.splice(indexToRemove, 1);
+  createPhotoPreview(currentFiles);
 }
 
 class SheetApp {

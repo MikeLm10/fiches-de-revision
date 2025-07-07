@@ -23,16 +23,16 @@
     <p class="subtitle">Gérer toutes les fiches partagées et en attente</p>
 
     <h2 style="margin-top:40px;">📤 Fiches en attente</h2>
-    <div id="pendingFicheCount" style="margin: 12px 0; font-size: 1rem; color: #ffff;">
+    <div id="pendingFicheCount" class="fiche-count">
       📊 0 fiche en attente
     </div>
     <section id="pendingFiches" class="admin-list"></section>
 
     <h2 style="margin-top:60px;">✅ Fiches validées</h2>
-    <div id="sharedFicheCount" style="margin: 12px 0; font-size: 1rem; color: #ffff;">
-      📊 0 fiche validée
-    </div>
-    <section id="sharedFiches" class="admin-list"></section>
+    <p style="font-size:1rem; margin: 12px 0;">
+      Ces fiches sont déjà publiées et accessibles à tous sur la page suivante :
+    </p>
+    <a href="shared.html" class="nav-btn">👁️ Voir les fiches publiées</a>
   </div>
 
   <script type="module" src="admin-panel.js"></script>
