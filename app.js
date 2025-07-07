@@ -32,6 +32,7 @@ const appFirebase = initializeApp(firebaseConfig);
 const db = getFirestore(appFirebase);
 
 let isAdmin = false;
+let currentFiles = [];
 
 const adminLoginBtn = document.getElementById('adminLoginBtn');
 const adminPasswordInput = document.getElementById('adminPassword');
@@ -140,9 +141,6 @@ function createPhotoPreview(files) {
     };
     reader.readAsDataURL(file);
   });
-  const dt = new DataTransfer();
-  currentFiles.forEach(f => dt.items.add(f));
-  document.getElementById('photoInput').files = dt.files;
 }
 
 function removePhotoAtIndex(indexToRemove) {
@@ -164,19 +162,20 @@ class SheetApp {
     if(form){
       form.onsubmit = async (e) => {
         e.preventDefault();
-        const fileInput = document.getElementById('photoInput');
-        const files = window.currentFiles || [];
+        const files = currentFiles || [];
         let photoURLs = [];
-        if(files && files.length){
-          if (!files.length) {
-            showToast("Aucune photo à envoyer (ou erreur de sélection)");
-          }
-          for(let i=0; i<files.length; i++){
-            const file = files[i];
-            const url = await uploadPhotoToCloudinary(file);
-            photoURLs.push(url);
+
+        if(files.length){
+          for (let i = 0; i < files.length; i++) {
+            try {
+              const url = await uploadPhotoToCloudinary(files[i]);
+              photoURLs.push(url);
+            } catch (err) {
+              showToast("Erreur lors de l'envoi d'une image.");
+            }
           }
         }
+
         const data = {
           firstName: form.firstName.value.trim(),
           lastName: form.lastName.value.trim(),
@@ -190,9 +189,12 @@ class SheetApp {
           status: "pending",
           timestamp: Date.now()
         };
-        await addDoc(collection(db,"fiches"),data);
+
+        await addDoc(collection(db, "fiches"), data);
         form.reset();
-        if(document.getElementById('photoPreview')) document.getElementById('photoPreview').innerHTML = "";
+        currentFiles = [];
+        const preview = document.getElementById('photoPreview');
+        if (preview) preview.innerHTML = "";
         showToast("Fiche envoyée !");
         this.renderPending();
       };
@@ -214,7 +216,6 @@ class SheetApp {
           photoUploadDiv.classList.remove('dragover');
           const dt = e.dataTransfer;
           if(dt && dt.files && dt.files.length){
-            input.files = dt.files;
             createPhotoPreview(dt.files);
           }
         };
@@ -248,37 +249,28 @@ class SheetApp {
       return;
     }
     container.innerHTML = "";
-sheets.forEach((s, idx) => {
-  const div = document.createElement('div');
-  div.className = "sheet-card";
-  div.style.animationDelay = (idx * 80) + "ms";
-  div.innerHTML = `
-    <div class="sheet-title">${s.chapter}</div>
-    <div class="sheet-meta">
-      ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}
-    </div>
-    <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
-    ${s.photos?.length
-      ? `<div class="sheet-photos">${s.photos.map(url =>
-          `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`
-        ).join('')}</div>`
-      : ''
-    }
-    <div class="sheet-actions">
-      <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Exporter PDF</button>
-    </div>
-  `;
-  container.appendChild(div);
-});
-
+    sheets.forEach((s, idx) => {
+      const div = document.createElement('div');
+      div.className = "sheet-card";
+      div.style.animationDelay = (idx * 80) + "ms";
+      div.innerHTML = `
+        <div class="sheet-title">${s.chapter}</div>
+        <div class="sheet-meta">
+          ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}
+        </div>
+        <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
+        ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(url => `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`).join('')}</div>` : ''}
+        <div class="sheet-actions">
+          <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Exporter PDF</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
   }
 
   async renderPending() {
     const container = document.getElementById('pendingContainer');
-    if (!container) {
-      console.log("Le container #pendingContainer n'existe pas !");
-      return;
-    }
+    if (!container) return;
     const q = query(collection(db, "fiches"), where("status", "==", "pending"));
     const snapshot = await getDocs(q);
     let sheets = [];
@@ -307,12 +299,7 @@ sheets.forEach((s, idx) => {
           ${s.firstName} ${s.lastName} – ${s.email} – ${s.subject} – ${s.grade} – ${s.pathway}
         </div>
         <div class="sheet-content">${s.content.replace(/\n/g,"<br>")}</div>
-        ${s.photos?.length
-          ? `<div class="sheet-photos">${s.photos.map(url =>
-              `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`
-            ).join('')}</div>`
-          : ''
-        }
+        ${s.photos?.length ? `<div class="sheet-photos">${s.photos.map(url => `<img src="${url}" alt="Photo" onclick="showImage('${url}')">`).join('')}</div>` : ''}
         <div class="sheet-actions">
           ${actionsHtml}
           <button class="btn btn-small" onclick='app.exportPDF(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Exporter PDF</button>
@@ -321,7 +308,6 @@ sheets.forEach((s, idx) => {
       container.appendChild(div);
     });
   }
-  
 
   async approveSheet(id) {
     await updateDoc(doc(db,"fiches",id), {status:"approved"});
@@ -346,11 +332,11 @@ sheets.forEach((s, idx) => {
       <head>
         <title>${sheet.chapter}</title>
         <style>
-          body { font-family: Arial,sans-serif; padding:30px;}
-          h1 { color:#002f6c; border-bottom:2px solid #002f6c; padding-bottom:10px;}
-          .meta { font-size:1.1em; margin-bottom:18px;}
-          .content { background:#f3f4f6; padding:18px; border-radius:8px; font-size:1.13em;}
-          img { max-width:100%; margin-top:16px; border-radius:10px;}
+          body { font-family: Arial,sans-serif; padding:30px; }
+          h1 { color:#002f6c; border-bottom:2px solid #002f6c; padding-bottom:10px; }
+          .meta { font-size:1.1em; margin-bottom:18px; }
+          .content { background:#f3f4f6; padding:18px; border-radius:8px; font-size:1.13em; }
+          img { max-width:100%; margin-top:16px; border-radius:10px; }
         </style>
       </head>
       <body>
@@ -392,4 +378,3 @@ if(darkBtn){
 
 window.app = new SheetApp();
 updateAdminUI();
-
