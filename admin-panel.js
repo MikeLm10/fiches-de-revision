@@ -8,7 +8,6 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  setDoc,
   arrayRemove,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -52,24 +51,24 @@ async function loadFiches() {
     pendingCount.textContent = `📊 ${pendingTotal} fiche${pendingTotal > 1 ? "s" : ""} en attente`;
   }
 
-  const sharedSnap = await getDocs(collection(db, "shared"));
+  const approvedSnap = await getDocs(query(collection(db, "fiches"), where("status", "==", "approved")));
   sharedSection.innerHTML = "";
-  let sharedTotal = 0;
+  let approvedTotal = 0;
 
-  if (sharedSnap.empty) {
-    sharedSection.innerHTML = "<p style='color:#555;'>Aucune fiche partagée.</p>";
+  if (approvedSnap.empty) {
+    sharedSection.innerHTML = "<p style='color:#555;'>Aucune fiche validée.</p>";
   } else {
-    sharedSnap.forEach(docSnap => {
+    approvedSnap.forEach(docSnap => {
       const fiche = docSnap.data();
       const id = docSnap.id;
-      const el = createFicheCard(fiche, id, "shared");
+      const el = createFicheCard(fiche, id, "approved");
       sharedSection.appendChild(el);
-      sharedTotal++;
+      approvedTotal++;
     });
   }
 
   if (sharedCount) {
-    sharedCount.textContent = `📊 ${sharedTotal} fiche${sharedTotal > 1 ? "s" : ""} validée${sharedTotal > 1 ? "s" : ""}`;
+    sharedCount.textContent = `📊 ${approvedTotal} fiche${approvedTotal > 1 ? "s" : ""} validée${approvedTotal > 1 ? "s" : ""}`;
   }
 }
 
@@ -86,9 +85,9 @@ function createFicheCard(fiche, id, type) {
     <div style="margin: 12px 0; display:flex; gap:12px; flex-wrap:wrap;">
       ${type === "pending" ? `
         <button class="btn btn-secondary" onclick="validateFiche('${id}')">✅ Valider</button>
-        <button class="btn btn-danger" onclick="deleteFiche('${id}', 'fiches')">🗑️ Supprimer</button>
+        <button class="btn btn-danger" onclick="deleteFiche('${id}')">🗑️ Supprimer</button>
       ` : `
-        <button class="btn btn-danger" onclick="deleteFiche('${id}', 'shared')">🗑️ Supprimer</button>
+        <button class="btn btn-danger" onclick="deleteFiche('${id}')">🗑️ Supprimer</button>
         ${fiche.comments?.length ? `
           <div style="width:100%;margin-top:10px;">
             <strong>💬 Commentaires (${fiche.comments.length})</strong>
@@ -110,39 +109,24 @@ function createFicheCard(fiche, id, type) {
 }
 
 window.validateFiche = async function(id) {
-  console.log("✅ Validation demandée pour la fiche :", id);
-  const ficheRef = doc(db, "fiches", id);
-  const ficheSnap = await getDocs(query(collection(db, "fiches"), where("__name__", "==", id)));
-
-  if (ficheSnap.empty) {
-    console.error("Fiche introuvable dans 'fiches'");
-    return;
-  }
-
-  const fiche = ficheSnap.docs[0].data();
-  const sharedRef = doc(db, "shared", id);
-
-  await setDoc(sharedRef, {
-    ...fiche,
-    status: "validated",
+  await updateDoc(doc(db, "fiches", id), {
+    status: "approved",
     validatedAt: new Date().toISOString()
   });
-
-  await deleteDoc(ficheRef);
   showToast("✅ Fiche validée !");
   loadFiches();
 };
 
-window.deleteFiche = async function(id, col) {
+window.deleteFiche = async function(id) {
   if (confirm("Supprimer cette fiche ?")) {
-    await deleteDoc(doc(db, col, id));
+    await deleteDoc(doc(db, "fiches", id));
     showToast("🗑️ Fiche supprimée.");
     loadFiches();
   }
 };
 
 window.removeComment = async function(ficheId, commentObj) {
-  await updateDoc(doc(db, "shared", ficheId), {
+  await updateDoc(doc(db, "fiches", ficheId), {
     comments: arrayRemove(commentObj)
   });
   showToast("💬 Commentaire supprimé.");

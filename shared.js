@@ -199,7 +199,7 @@ window.openFicheModal = function(sheet) {
 };
 
 function loadComments(ficheId) {
-  const ficheRef = doc(db, "shared", ficheId);
+  const ficheRef = doc(db, "fiches", ficheId);
   getDoc(ficheRef).then(docSnap => {
     const fiche = docSnap.data();
     const comments = fiche.comments || [];
@@ -227,7 +227,7 @@ document.addEventListener("submit", function(e) {
     if (!name || !message) return;
     const date = new Date().toLocaleString("fr-FR");
     const newComment = { name, message, date };
-    const ficheRef = doc(db, "shared", currentFicheId);
+    const ficheRef = doc(db, "fiches", currentFicheId);
     updateDoc(ficheRef, {
       comments: arrayUnion(newComment)
     }).then(() => {

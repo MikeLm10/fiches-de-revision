@@ -165,9 +165,12 @@ class SheetApp {
       form.onsubmit = async (e) => {
         e.preventDefault();
         const fileInput = document.getElementById('photoInput');
-        const files = fileInput && fileInput.files ? fileInput.files : [];
+        const files = window.currentFiles || [];
         let photoURLs = [];
         if(files && files.length){
+          if (!files.length) {
+            showToast("Aucune photo à envoyer (ou erreur de sélection)");
+          }
           for(let i=0; i<files.length; i++){
             const file = files[i];
             const url = await uploadPhotoToCloudinary(file);
