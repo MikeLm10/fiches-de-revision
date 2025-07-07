@@ -165,7 +165,8 @@ class SheetApp {
         const files = currentFiles || [];
         let photoURLs = [];
 
-        if(files.length){
+
+        if (files.length) {
           for (let i = 0; i < files.length; i++) {
             try {
               const url = await uploadPhotoToCloudinary(files[i]);
@@ -175,6 +176,7 @@ class SheetApp {
             }
           }
         }
+        
 
         const data = {
           firstName: form.firstName.value.trim(),
@@ -203,20 +205,29 @@ class SheetApp {
 
   setupPhotoPreview() {
     const input = document.getElementById('photoInput');
-    if(input){
-      input.onchange = function() {
-        createPhotoPreview(input.files);
+    if (input) {
+      input.onchange = function () {
+        const allFiles = [...currentFiles, ...input.files];
+        createPhotoPreview(allFiles);
       };
+  
       const photoUploadDiv = document.querySelector('.photo-upload');
-      if(photoUploadDiv){
-        photoUploadDiv.ondragover = function(e){ e.preventDefault(); photoUploadDiv.classList.add('dragover'); };
-        photoUploadDiv.ondragleave = function(e){ e.preventDefault(); photoUploadDiv.classList.remove('dragover'); };
-        photoUploadDiv.ondrop = function(e){
+      if (photoUploadDiv) {
+        photoUploadDiv.ondragover = function (e) {
+          e.preventDefault();
+          photoUploadDiv.classList.add('dragover');
+        };
+        photoUploadDiv.ondragleave = function (e) {
+          e.preventDefault();
+          photoUploadDiv.classList.remove('dragover');
+        };
+        photoUploadDiv.ondrop = function (e) {
           e.preventDefault();
           photoUploadDiv.classList.remove('dragover');
           const dt = e.dataTransfer;
-          if(dt && dt.files && dt.files.length){
-            createPhotoPreview(dt.files);
+          if (dt && dt.files && dt.files.length) {
+            const allFiles = [...currentFiles, ...dt.files];
+            createPhotoPreview(allFiles);
           }
         };
       }
